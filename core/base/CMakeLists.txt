@@ -36,6 +36,7 @@ ROOT_GENERATE_DICTIONARY(G__Core
 
 list(REMOVE_ITEM sources TROOT.cxx roota.cxx)
 ROOT_OBJECT_LIBRARY(Base G__Core.cxx ${sources})
+cotire(Base)
 
 ROOT_INSTALL_HEADERS()
 

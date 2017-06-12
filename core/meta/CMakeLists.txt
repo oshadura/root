@@ -9,6 +9,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/res ${CMAKE_CURRENT_SOURCE_DIR}/
 
 set(Meta_dict_headers ${headers} PARENT_SCOPE)
 ROOT_OBJECT_LIBRARY(Meta ${sources})
+cotire(Meta)
 
 ROOT_INSTALL_HEADERS()
 

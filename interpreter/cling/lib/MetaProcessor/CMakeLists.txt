@@ -30,3 +30,5 @@ add_cling_library(clingMetaProcessor OBJECT
   clingInterpreter
   clingUtils
 )
+
+cotire(clingMetaProcessor)

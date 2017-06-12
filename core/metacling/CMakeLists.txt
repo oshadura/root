@@ -24,6 +24,7 @@ endif()
 ROOT_ADD_CXX_FLAG(CMAKE_CXX_FLAGS -Wno-conditional-uninitialized)
 
 ROOT_OBJECT_LIBRARY(MetaCling ${sources})
+cotire(MetaCling)
 add_dependencies(MetaCling CLING)
 
 
@@ -34,6 +35,7 @@ ROOT_LINKER_LIBRARY(Cling
         $<TARGET_OBJECTS:Dictgen>
         $<TARGET_OBJECTS:MetaCling>
         LIBRARIES ${CLING_LIBRARIES})
+cotire(Cling)
 
 if(APPLE)
 target_link_libraries(Cling -Wl,-bind_at_load -Wl,-undefined -Wl,dynamic_lookup)

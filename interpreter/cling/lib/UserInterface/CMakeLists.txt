@@ -48,6 +48,8 @@ add_cling_library(clingUserInterface
   clingUtils
 )
 
+cotire(clingUserInterface)
+
 if(UNIX)
   set_source_files_properties(UserInterface.cpp COMPILE_FLAGS "-fexceptions")
 endif()

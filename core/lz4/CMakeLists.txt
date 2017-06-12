@@ -13,6 +13,7 @@ set(sources ${CMAKE_CURRENT_SOURCE_DIR}/src/ZipLZ4.c)
 
 include_directories(${LZ4_INCLUDE_DIR})
 ROOT_OBJECT_LIBRARY(Lz4 ${sources})
+cotire(Lz4)
 
 if(builtin_lz4)
   add_dependencies(Lz4 LZ4)

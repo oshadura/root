@@ -78,6 +78,7 @@ add_cling_library(clingInterpreter OBJECT
   LINK_LIBS
   ${LIBS}
 )
+cotire(clingInterpreter)
 
 #add_dependencies(clangDriver ClangAttrList ClangDiagnosticDriver
 #                 ClangDriverOptions ClangCC1Options ClangCC1AsOptions)

@@ -197,6 +197,8 @@ if ( LLVM_USE_FOLDERS )
 endif()
 
 include(VersionFromVCS)
+include(cotire)
+set_property(DIRECTORY PROPERTY COTIRE_UNITY_LINK_LIBRARIES_INIT "COPY_UNITY")
 
 option(LLVM_APPEND_VC_REV
   "Append the version control system revision id to LLVM version" OFF)
@@ -923,6 +925,7 @@ if( LLVM_INCLUDE_TESTS )
   add_custom_target(test-depends
                     DEPENDS ${LLVM_LIT_DEPENDS} ${LLVM_ADDITIONAL_TEST_DEPENDS})
   set_target_properties(test-depends PROPERTIES FOLDER "Tests")
+  cotire(test-depends)
 endif()
 
 if (LLVM_INCLUDE_DOCS)

@@ -13,4 +13,5 @@ endif()
 include_directories(${TBB_INCLUDE_DIRS})
 
 ROOT_LINKER_LIBRARY(Imt ${sources} LIBRARIES ${CMAKE_THREAD_LIBS_INIT} ${TBB_LIBRARIES} DEPENDENCIES Core Thread BUILTINS TBB)
+cotire(Imt)
 ROOT_INSTALL_HEADERS(${installoptions})

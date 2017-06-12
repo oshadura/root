@@ -27,5 +27,6 @@ endif()
 ROOT_OBJECT_LIBRARY(Dictgen
   ${sources}
 )
+cotire(Dictgen)
 
 add_dependencies(Dictgen CLING)

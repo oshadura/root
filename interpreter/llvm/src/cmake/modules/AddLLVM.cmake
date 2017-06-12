@@ -608,6 +608,7 @@ macro(add_llvm_library name)
     set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS ${name})
   endif()
   set_target_properties(${name} PROPERTIES FOLDER "Libraries")
+  cotire(${name})
 endmacro(add_llvm_library name)
 
 macro(add_llvm_loadable_module name)
@@ -643,6 +644,7 @@ macro(add_llvm_loadable_module name)
   endif()
 
   set_target_properties(${name} PROPERTIES FOLDER "Loadable modules")
+  cotire(${name})
 endmacro(add_llvm_loadable_module name)
 
 
@@ -663,6 +665,7 @@ macro(add_llvm_executable name)
     set(ALL_FILES "$<TARGET_OBJECTS:${obj_name}>")
 
     set_target_properties(${obj_name} PROPERTIES FOLDER "Object Libraries")
+    cotire(${obj_name})
   endif()
 
   add_windows_version_resource_file(ALL_FILES ${ALL_FILES})
@@ -840,6 +843,7 @@ macro(add_llvm_tool name)
     set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS ${name})
   endif()
   set_target_properties(${name} PROPERTIES FOLDER "Tools")
+  cotire(${name})
 endmacro(add_llvm_tool name)
 
 
@@ -852,6 +856,7 @@ macro(add_llvm_example name)
     install(TARGETS ${name} RUNTIME DESTINATION examples)
   endif()
   set_target_properties(${name} PROPERTIES FOLDER "Examples")
+  cotire(${name})
 endmacro(add_llvm_example name)
 
 # This is a macro that is used to create targets for executables that are needed

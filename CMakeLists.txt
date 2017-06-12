@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.4.3 FATAL_ERROR)
 cmake_policy(SET CMP0005 NEW)
 include(cmake/modules/CaptureCommandLine.cmake)
 
+#---Cotire---------------------------------------------------------------------------------------
+include(cmake/modules/cotire.cmake)
+
 #---Set name of the project to "ROOT". Has to be done after check of cmake version--------------
 project(ROOT)
 set(IntegratedBuild ON)
