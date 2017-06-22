@@ -120,7 +120,7 @@ int main(int argc, char **argv)
    Int_t read   = 0;
    Int_t arg4   = 1;
    Int_t arg5   = 600;     //default number of tracks per event
-   Int_t compAlg = 1;      // Allow user to specify underlying compression algorithm.
+   Int_t compAlg = 4;      // Allow user to specify underlying compression algorithm.
    Int_t netf   = 0;
    Int_t punzip = 0;
 
