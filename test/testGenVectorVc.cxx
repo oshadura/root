@@ -218,7 +218,7 @@ int main(int /*argc*/, char ** /*argv*/)
 
       // Loop over the two containers and compare
       std::cout << "Ray Tracing :-" << std::endl;
-
+#pragma omp parallel for
       for (size_t i = 0; i < nPhotons; ++i) {
          auto &sc = scalar_data[i];
          auto &vc = vc_data[i];
@@ -241,9 +241,9 @@ int main(int /*argc*/, char ** /*argv*/)
             ret |= compare(sc.direction.z(), vc.direction.z()[j]);
          }
       }
-
       // Now test Transformation3D
       std::cout << "Transforms :-" << std::endl;
+#pragma omp parallel for
       for (size_t i = 0; i < nPhotons; ++i) {
          auto &sc = scalar_data[i];
          auto &vc = vc_data[i];
@@ -340,13 +340,13 @@ int main(int /*argc*/, char ** /*argv*/)
       TStopwatch t;
 
       double best_time_scalar{9e30}, best_time_vector{9e30};
-
       // time the scalar implementation
       for (unsigned int i = 0; i < nTests; ++i) {
          t.Start();
-         for (auto &sc : scalar_data) {
-            reflectSpherical(sc.position, sc.direction, sc.CoC, sc.radius);
-            reflectPlane(sc.position, sc.direction, sc.plane);
+#pragma omp parallel for
+        for (auto sc = scalar_data.begin(); sc < scalar_data.end(); ++sc){
+            reflectSpherical(sc->position, sc->direction, sc->CoC, sc->radius);
+            reflectPlane(sc->position, sc->direction, sc->plane);
          }
          t.Stop();
          const auto time = t.RealTime();
@@ -354,13 +354,14 @@ int main(int /*argc*/, char ** /*argv*/)
             best_time_scalar = time;
          }
       }
-
       // time the Vc implementation
       for (unsigned int i = 0; i < nTests; ++i) {
          t.Start();
-         for (auto &vc : vc_data) {
-            reflectSpherical(vc.position, vc.direction, vc.CoC, vc.radius);
-            reflectPlane(vc.position, vc.direction, vc.plane);
+	int length = vc_data.size();
+#pragma omp parallel for
+	for (auto vc = vc_data.begin(); vc < vc_data.end(); ++vc){
+            reflectSpherical(vc->position, vc->direction, vc->CoC, vc->radius);
+            reflectPlane(vc->position, vc->direction, vc->plane);
          }
          t.Stop();
          const auto time = t.RealTime();
@@ -374,7 +375,6 @@ int main(int /*argc*/, char ** /*argv*/)
       std::cout << "Vectorised Vc SIMD size = " << Vc::double_v::Size << std::endl;
       std::cout << "Vectorised Vc speedup   = " << best_time_scalar / best_time_vector << std::endl;
 
-      // assert that the vector time is roughly Vc::double_v::Size times smaller than the scalar time
       // allow 25% for 'safety'
       // if (std::fabs((best_time_vector * Vc::double_v::Size) - best_time_scalar) > 0.25 * best_time_scalar) {
       //   ++ret;
