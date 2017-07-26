@@ -1359,9 +1359,52 @@ if(Vc_FOUND)
   set(Vc_INCLUDE_DIRS ${Vc_INCLUDE_DIR})
 endif()
 
+#---Check for UMESIMD-------------------------------------------------------------------
+if(builtin_vc)
+	set(UMESIMD_VERSION "0.8.1")
+	set(UMESIMD_PROJECT "umesimd-${UMESIMD_VERSION}")
+	set(UMESIMD_SRC_MD5 "3960a11a20a4294e68480ab0d39db6d7")
+	set(UMESIMD_ROOTDIR "${CMAKE_BINARY_DIR}/${UMESIMD_PROJECT}")
+	set(UMESIMD_DESTDIR "${CMAKE_BINARY_DIR}/${UMESIMD_PROJECT}/include/umesimd")
+	set(UMESIMD_SOURCES "${CMAKE_BINARY_DIR}/externals/src/${UMESIMD_PROJECT}")
+	set(UMESIMD_DST_DIR "${CMAKE_BINARY_DIR}/${UMESIMD_PROJECT}/include/umesimd")
+
+	ExternalProject_Add(${UMESIMD_PROJECT}
+  	PREFIX externals
+  	URL "http://lcgpackages.web.cern.ch/lcgpackages/tarFiles/sources/${UMESIMD_PROJECT}.tar.gz"
+  	URL_MD5 ${UMESIMD_SRC_MD5}
+  	CONFIGURE_COMMAND ""
+  	BUILD_COMMAND ""
+  	INSTALL_COMMAND
+    	${CMAKE_COMMAND} -E copy_directory ${UMESIMD_SOURCES}/ ${UMESIMD_DESTDIR}
+    	&& ${CMAKE_COMMAND} -E remove ${UMESIMD_DESTDIR}/CMakeLists.txt
+    	&& ${CMAKE_COMMAND} -E remove ${UMESIMD_DESTDIR}/README.md
+    	&& ${CMAKE_COMMAND} -E remove_directory ${UMESIMD_DESTDIR}/doc
+    	&& ${CMAKE_COMMAND} -E remove_directory ${UMESIMD_DESTDIR}/examples
+    	&& ${CMAKE_COMMAND} -E remove_directory ${UMESIMD_DESTDIR}/microbenchmarks
+    	&& ${CMAKE_COMMAND} -E remove_directory ${UMESIMD_DESTDIR}/unittest
+	)
+
+
+	add_custom_target(UMESIMD)
+	add_dependencies(UMESIMD ${UMESIMD_PROJECT})
+
+	set(UMESIMD_INCLUDE_DIRS ${UMESIMD_ROOTDIR}/include)
+
+	find_package_handle_standard_args(UMESIMD
+  	REQUIRED_VARS UMESIMD_INCLUDE_DIRS VERSION_VAR UMESIMD_VERSION)
+
+	install(DIRECTORY ${UMESIMD_ROOTDIR}/ DESTINATION ${CMAKE_INSTALL_PREFIX})
+endif()
+
 #---Check for VecCore--------------------------------------------------------------------
 if(veccore AND NOT builtin_veccore AND builtin_vc)
   message(WARNING "Vc is not relocatable, so 'builtin_vc' requires 'builtin_veccore' to set up Vc properly.")
+  set(builtin_veccore ON CACHE BOOL "" FORCE)
+endif()
+
+if(veccore AND NOT builtin_veccore AND builtin_umesimd)
+  message(WARNING "UMESIMD is not relocatable, so 'builtin_umesimd' requires 'builtin_veccore' to set up UMESIMD properly.")
   set(builtin_veccore ON CACHE BOOL "" FORCE)
 endif()
 
@@ -1372,6 +1415,8 @@ if(builtin_veccore)
 elseif(veccore)
   if(vc)
     set(VecCore_COMPONENTS Vc)
+  elseif(umesimd)
+    set(VecCore_COMPONENTS UMESIMD)
   endif()
   if(fail-on-missing)
     find_package(VecCore 0.4.0 CONFIG QUIET REQUIRED COMPONENTS ${VecCore_COMPONENTS})
@@ -1397,20 +1442,20 @@ if(veccore AND NOT VecCore_FOUND)
   set(VecCore_SRC_MD5 "7728dc706744e54a79fcb80059a31529")
   set(VecCore_DESTDIR "${CMAKE_BINARY_DIR}/VECCORE-prefix/install")
   set(VecCore_ROOTDIR "${VecCore_DESTDIR}/${CMAKE_INSTALL_PREFIX}")
+endif()
 
-  if(builtin_vc)
+if(builtin_vc)
     set(Vc_VERSION "1.3.2") # version built by VecCore
     set(Vc_LIBNAME "${CMAKE_STATIC_LIBRARY_PREFIX}Vc${CMAKE_STATIC_LIBRARY_SUFFIX}")
     set(Vc_LIBRARY "${VecCore_ROOTDIR}/lib/${Vc_LIBNAME}")
-  endif()
 
-  ExternalProject_Add(VECCORE
-    URL     ${VecCore_SRC_URI}
-    URL_MD5 ${VecCore_SRC_MD5}
-    BUILD_IN_SOURCE 0
-    BUILD_BYPRODUCTS ${Vc_LIBRARY}
-    LOG_DOWNLOAD 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
-    CMAKE_ARGS -G ${CMAKE_GENERATOR}
+  	ExternalProject_Add(VECCORE
+    	URL     ${VecCore_SRC_URI}
+    	URL_MD5 ${VecCore_SRC_MD5}
+    	BUILD_IN_SOURCE 0
+    	BUILD_BYPRODUCTS ${Vc_LIBRARY}
+    	LOG_DOWNLOAD 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
+    	CMAKE_ARGS -G ${CMAKE_GENERATOR}
                -DBUILD_TESTING=OFF -DBUILD_VC=${builtin_vc}
                -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
@@ -1418,12 +1463,10 @@ if(veccore AND NOT VecCore_FOUND)
                -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
                -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-    INSTALL_COMMAND env DESTDIR=${VecCore_DESTDIR} ${CMAKE_COMMAND} --build . --target install
-  )
+    	INSTALL_COMMAND env DESTDIR=${VecCore_DESTDIR} ${CMAKE_COMMAND} --build . --target install
+  	)
 
-  set(VECCORE_TARGET VECCORE)
-
-  if(builtin_vc)
+  	set(VECCORE_TARGET VECCORE)
     add_library(Vc STATIC IMPORTED)
     set_property(TARGET Vc PROPERTY IMPORTED_LOCATION ${Vc_LIBRARY})
     add_dependencies(Vc VECCORE)
@@ -1437,7 +1480,36 @@ if(veccore AND NOT VecCore_FOUND)
       FOUND_VAR Vc_FOUND
       REQUIRED_VARS Vc_INCLUDE_DIR Vc_LIBRARIES Vc_CMAKE_MODULES_DIR
       VERSION_VAR Vc_VERSION)
-  endif()
+elseif(builtin_umesimd)
+    set(UMESIMD_VERSION "0.8.1") # version built by VecCore
+
+    ExternalProject_Add(VECCORE
+      URL     ${VecCore_SRC_URI}
+      URL_MD5 ${VecCore_SRC_MD5}
+      BUILD_IN_SOURCE 0
+      BUILD_BYPRODUCTS ${Vc_LIBRARY}
+      LOG_DOWNLOAD 1 LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
+      CMAKE_ARGS -G ${CMAKE_GENERATOR}
+               -DBUILD_TESTING=OFF -DBUILD_UMESIMD=${builtin_vc}
+               -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+               -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+               -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+               -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+               -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
+               -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+      INSTALL_COMMAND env DESTDIR=${VecCore_DESTDIR} ${CMAKE_COMMAND} --build . --target install
+    )
+
+    set(VECCORE_TARGET VECCORE)
+    add_dependencies(UMESIMD VECCORE)
+
+    set(UMESIMD_INCLUDE_DIRS ${VecCore_ROOTDIR}/include)
+
+    find_package_handle_standard_args(Vc
+      FOUND_VAR UMESIMD_FOUND
+      REQUIRED_VARS UMESIMD_INCLUDE_DIRS Vc_LIBRARIES
+      VERSION_VAR UMESIMD_VERSION)
+endif()
 
   if (vc OR builtin_vc)
     set(VecCore_Vc_FOUND True)
@@ -1448,7 +1520,14 @@ if(veccore AND NOT VecCore_FOUND)
     set(VecCore_DEFINITIONS -DVECCORE_ENABLE_VC)
     set(VecCore_INCLUDE_DIRS ${Vc_INCLUDE_DIR})
     set(VecCore_LIBRARIES ${Vc_LIBRARIES})
-  endif()
+  elseif (umesimd OR builtin_umesimd)
+		set(VecCore_UMESIMD_FOUND True)
+    set(VecCore_UMESIMD_DEFINITIONS -DVECCORE_ENABLE_UMESIMD)
+    set(VecCore_UMESIMD_INCLUDE_DIR ${UMESIMD_INCLUDE_DIRS})
+
+    set(VecCore_DEFINITIONS -DVECCORE_ENABLE_UMESIMD)
+    set(VecCore_INCLUDE_DIRS ${UMESIMD_INCLUDE_DIRS})
+	endif()
 
   set(VecCore_INCLUDE_DIRS ${VecCore_INCLUDE_DIRS} ${VecCore_ROOTDIR}/include)
 

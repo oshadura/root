@@ -9,6 +9,10 @@
 #define VECCORE_ENABLE_VC
 #endif
 
+#if defined(R__HAS_UMESIMD) && !defined(VECCORE_ENABLE_UMESIMD)
+#define VECCORE_ENABLE_UMESIMD
+#endif
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wall"
 #include <VecCore/VecCore>
