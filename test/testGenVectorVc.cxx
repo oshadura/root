@@ -344,7 +344,7 @@ int main(int /*argc*/, char ** /*argv*/)
       for (unsigned int i = 0; i < nTests; ++i) {
          t.Start();
 #pragma omp parallel for
-        for (auto sc = scalar_data.begin(); sc < scalar_data.end(); ++sc){
+        for (auto sc = scalar_data.begin(); end = scalar_data.end(); sc < end; ++sc){
             reflectSpherical(sc->position, sc->direction, sc->CoC, sc->radius);
             reflectPlane(sc->position, sc->direction, sc->plane);
          }
@@ -357,9 +357,8 @@ int main(int /*argc*/, char ** /*argv*/)
       // time the Vc implementation
       for (unsigned int i = 0; i < nTests; ++i) {
          t.Start();
-	int length = vc_data.size();
 #pragma omp parallel for
-	for (auto vc = vc_data.begin(); vc < vc_data.end(); ++vc){
+	for (auto vc = vc_data.begin(); end = vc_data.end(); vc < end; ++vc){
             reflectSpherical(vc->position, vc->direction, vc->CoC, vc->radius);
             reflectPlane(vc->position, vc->direction, vc->plane);
          }
