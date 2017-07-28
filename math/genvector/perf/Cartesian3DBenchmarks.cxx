@@ -49,6 +49,9 @@ static void BM_Cartesian3D_Theta(benchmark::State& state)
    T checksum = T();
    while (state.KeepRunning()) {
       checksum = T();
+#pragma ivdep                                                                                                
+#pragma vector always
+#pragma simd
       for (auto &p : Points) {
          c.SetCoordinates(p.X, p.Y, p.Z);
          checksum += c.Theta();
@@ -69,11 +72,15 @@ static void BM_Cartesian3D_Phi(benchmark::State& state)
    SetSeed(2);
    // Allocate N points
    constexpr size_t VecSize = TypeSize<T>::Get();
-   typename Data<T>::Vector Points(state.range(0) / VecSize);
+   const int size = state.range(0) / VecSize;
+   typename Data<T>::Vector Points(size);
    ROOT::Math::Cartesian3D<T> c;
    T checksum = T();
    while (state.KeepRunning()) {
       checksum = T();
+#pragma ivdep                                                                                                
+#pragma vector always
+#pragma simd
       for (auto &p : Points) {
          c.SetCoordinates(p.X, p.Y, p.Z);
          checksum += c.Phi();
@@ -99,6 +106,9 @@ static void BM_Cartesian3D_Mag2(benchmark::State& state)
    T checksum = T();
    while (state.KeepRunning()) {
       checksum = T();
+#pragma ivdep                                                                                                
+#pragma vector always
+#pragma simd
       for (auto &p : Points) {
          c.SetCoordinates(p.X, p.Y, p.Z);
          checksum += c.Mag2();
@@ -126,6 +136,9 @@ static void BM_Cartesian3D_Scale(benchmark::State& state)
    T checksum = T();
    while (state.KeepRunning()) {
       checksum = T();
+#pragma ivdep                                                                                                
+//#pragma vector always
+//#pragma simd
       for (auto &p : Points) {
          c.SetCoordinates(p.X, p.Y, p.Z);
          c.Scale(p.X);

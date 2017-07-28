@@ -55,7 +55,7 @@ public :
    /**
       Default constructor  with x=y=z=0
    */
-   Cartesian3D() : fX(0.0), fY(0.0), fZ(0.0) {  }
+   __attribute__((nothrow)) Cartesian3D() : fX(0.0), fY(0.0), fZ(0.0) {  }
 
    /**
       Constructor from x,y,z coordinates
@@ -102,25 +102,25 @@ public :
    /**
       Set internal data based on 3 Scalar numbers
    */
-   void SetCoordinates(Scalar  xx, Scalar  yy, Scalar  zz) { fX=xx; fY=yy; fZ=zz; }
+   __attribute__((nothrow)) void SetCoordinates(Scalar  xx, Scalar  yy, Scalar  zz) { fX=xx; fY=yy; fZ=zz; }
 
    /**
       get internal data into 3 Scalar numbers
    */
    void GetCoordinates(Scalar& xx, Scalar& yy, Scalar& zz) const {xx=fX; yy=fY; zz=fZ;}
 
-   Scalar X()     const { return fX;}
-   Scalar Y()     const { return fY;}
-   Scalar Z()     const { return fZ;}
-   Scalar Mag2()  const { return fX*fX + fY*fY + fZ*fZ;}
+   __attribute__((nothrow)) Scalar X()     const { return fX;}
+   __attribute__((nothrow)) Scalar Y()     const { return fY;}
+   __attribute__((nothrow)) Scalar Z()     const { return fZ;}
+   __attribute__((nothrow)) Scalar Mag2()  const { return fX*fX + fY*fY + fZ*fZ;}
    Scalar Perp2() const { return fX*fX + fY*fY ;}
    Scalar Rho() const { return sqrt(Perp2()); }
    Scalar R() const { return sqrt(Mag2()); }
-   Scalar Theta() const
+   __attribute__((nothrow)) Scalar Theta() const
    {
       return /*(fX == Scalar(0) && fY == Scalar(0) && fZ == Scalar(0)) ? Scalar(0) :*/ atan2(Rho(), Z());
    }
-   Scalar Phi() const { return /*(fX == Scalar(0) && fY == Scalar(0)) ? Scalar(0) :*/ atan2(fY, fX); }
+   __attribute__((nothrow)) Scalar Phi() const { return /*(fX == Scalar(0) && fY == Scalar(0)) ? Scalar(0) :*/ atan2(fY, fX); }
 
    // pseudorapidity
    Scalar Eta() const {
@@ -130,22 +130,22 @@ public :
    /**
        set the x coordinate value keeping y and z constant
    */
-   void SetX(Scalar xx) { fX = xx; }
+   __attribute__((nothrow)) void SetX(Scalar xx) { fX = xx; }
 
    /**
        set the y coordinate value keeping x and z constant
    */
-   void SetY(Scalar yy) { fY = yy; }
+   __attribute__((nothrow)) void SetY(Scalar yy) { fY = yy; }
 
    /**
        set the z coordinate value keeping x and y constant
    */
-   void SetZ(Scalar zz) { fZ = zz; }
+   __attribute__((nothrow)) void SetZ(Scalar zz) { fZ = zz; }
 
    /**
        set all values using cartesian coordinates
    */
-   void SetXYZ(Scalar xx, Scalar yy, Scalar zz) {
+   __attribute__((nothrow)) void SetXYZ(Scalar xx, Scalar yy, Scalar zz) {
       fX=xx;
       fY=yy;
       fZ=zz;
@@ -154,7 +154,7 @@ public :
    /**
       scale the vector by a scalar quantity a
    */
-   void Scale(Scalar a)
+   __attribute__((nothrow)) void Scale(Scalar a)
    {
       fX *= a;
       fY *= a;
