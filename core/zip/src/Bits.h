@@ -299,7 +299,11 @@ struct bits_internal_state {
   is done.  LZ4 typically has the worst compression ratios, but much faster decompression
   speeds - sometimes by an order of magnitude.
 */
+#ifdef R__USE_LZ4
 enum ECompressionAlgorithm R__ZipMode = 4;
+#else
+enum ECompressionAlgorithm R__ZipMode = 1;
+#endif
 
 /* ===========================================================================
  *  Prototypes for local functions
