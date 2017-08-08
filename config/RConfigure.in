@@ -37,4 +37,6 @@
 #@hasllvm@ R__EXTERN_LLVMDIR @llvmdir@
 #@useimt@ R__USE_IMT   /**/
 
+#@haslz4compression@ R__HAS_LZ4   /**/
+
 #endif
