@@ -1216,7 +1216,7 @@ void stress10()
       snprintf(filename,20,"Event_%d.root",file);
       chfile[file] = new TFile(filename,"recreate");
       if (file>=5) {
-#ifdef R__USE_LZ4
+#ifdef R__HAS_LZ4
          chfile[file]->SetCompressionAlgorithm(ROOT::kLZ4);
 #else
          chfile[file]->SetCompressionAlgorithm(ROOT::kLZMA);
