@@ -120,7 +120,7 @@ int main(int argc, char **argv)
    Int_t read   = 0;
    Int_t arg4   = 1;
    Int_t arg5   = 600;     //default number of tracks per event
-#ifdef R__USE_LZ4
+#ifdef R__HAS_LZ4
    Int_t compAlg = 4; // Allow user to specify underlying compression algorithm.
 #else
    Int_t compAlg = 1;
