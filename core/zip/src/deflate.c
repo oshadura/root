@@ -170,6 +170,7 @@ void *resolve_hash_func(void)
   return hash_func_sse42;
 #else
   return hash_func_default;
+#endif
 }
 
 /* ===========================================================================
