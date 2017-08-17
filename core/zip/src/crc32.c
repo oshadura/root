@@ -311,8 +311,10 @@ void *resolve_crc32(void)
 	/* We need SSE4.2 and PCLMUL ISA support */
 	if (!((ecx & bit_SSE4_2) && (ecx & bit_PCLMUL)))
 		return crc32_default;
-#endif
 	return crc32_pclmul;
+#else
+    return crc32_default;
+#endif
 }
 
 #ifdef BYFOUR
