@@ -7,7 +7,7 @@
 
 #include "zutil.h"
 
-#ifdef vector_zlib
+#ifdef vector_zlib_x86
 #include <xmmintrin.h>
 #include <tmmintrin.h>
 #include <immintrin.h>
@@ -149,6 +149,7 @@ uLong ZEXPORT adler32_default(uLong adler, const Bytef *buf, uInt len)
 #define likely(x)       __builtin_expect(!!(x), 1)
 #define unlikely(x)     __builtin_expect(!!(x), 0)
 
+#ifdef vector_zlib_x86
 /* ========================================================================= */
  __attribute__ ((target ("sse4.2")))
 uLong ZEXPORT adler32_sse42(uLong adler, const Bytef *buf, uInt len)
@@ -354,13 +355,14 @@ uLong ZEXPORT adler32_avx2(uLong adler, const Bytef *buf, uInt len)
 }
 
 uLong ZEXPORT adler32(uLong adler, const Bytef *buf, uInt len)  __attribute__ ((ifunc ("resolve_adler32")));
+#endif // vector_zlib_x86
 
 void *resolve_adler32(void)
 {
   unsigned int eax, ebx, ecx, edx;
 	signed char has_sse42 = 0;
 	signed char has_avx2 = 0;
-
+#ifdef vector_zlib_x86
 	/* Collect CPU features */
   if (!__get_cpuid (1, &eax, &ebx, &ecx, &edx))
     return adler32_default;
@@ -371,17 +373,17 @@ void *resolve_adler32(void)
 	__cpuid_count (7, 0, eax, ebx, ecx, edx);
 	has_avx2 = ((ebx & bit_AVX2) != 0);
 #endif /* defined(bit_AVX2) */
-
 	/* Pick AVX2 version */
 	if (has_avx2)
 		return adler32_avx2;
-
   /* Pick SSE4.2 version */
   if (has_sse42)
     return adler32_sse42;
-
 	/* Fallback to default implementation */
   return adler32_default;
+#else
+  return adler32_default;
+#endif // vector_zlib_x86
 }
 
 /* ========================================================================= */
