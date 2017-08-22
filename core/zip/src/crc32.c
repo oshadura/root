@@ -50,6 +50,7 @@
 #  define TBLS 1
 #endif /* BYFOUR */
 
+
 /* Local functions for crc concatenation */
 local unsigned long gf2_matrix_times OF((unsigned long *mat,
                                          unsigned long vec));
@@ -247,6 +248,17 @@ extern uint crc32_pclmul_le_16(unsigned char const *buffer,
                                size_t len, uInt crc32);
 #ifdef vector_zlib_x86
 uLong crc32_pclmul(uLong, const Bytef *, uInt) __attribute__ ((__target__ ("sse4.2,pclmul")));
+
+void *resolve_crc32(void)
+{
+    unsigned int eax, ebx, ecx, edx;
+    if (!__get_cpuid (1, &eax, &ebx, &ecx, &edx))
+        return crc32_default;
+    /* We need SSE4.2 and PCLMUL ISA support */
+    if (!((ecx & bit_SSE4_2) && (ecx & bit_PCLMUL)))
+        return crc32_default;
+    return crc32_pclmul;
+}
 #endif
 
 uLong crc32_pclmul(crc, buf, len)
@@ -300,22 +312,11 @@ uLong crc32_default(crc, buf, len)
 #ifdef vector_zlib_x86
 uLong crc32(unsigned long, const unsigned char FAR *, unsigned) 
 __attribute__ ((ifunc ("resolve_crc32")));
-#endif
-
-void *resolve_crc32(void)
-{
-	unsigned int eax, ebx, ecx, edx;
-#ifdef vector_zlib_x86
-	if (!__get_cpuid (1, &eax, &ebx, &ecx, &edx))
-		return crc32_default;
-	/* We need SSE4.2 and PCLMUL ISA support */
-	if (!((ecx & bit_SSE4_2) && (ecx & bit_PCLMUL)))
-		return crc32_default;
-	return crc32_pclmul;
 #else
-    return crc32_default;
-#endif
+uLong crc32(unsigned long crc, const unsigned char FAR *buf, unsigned len){
+    return crc32_default(crc, buf, len);
 }
+#endif
 
 #ifdef BYFOUR
 

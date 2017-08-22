@@ -156,22 +156,24 @@ static uint32_t hash_func_default(deflate_state *s, uint32_t h, void* str) {
 
 #ifdef vector_zlib_x86
 static uint32_t hash_func(deflate_state *s, uint32_t h, void* str) __attribute__ ((ifunc ("resolve_hash_func")));
+#else
+static uint32_t hash_func(deflate_state *s, uint32_t h, void* str){
+    return hash_func_default(s, h, str);
+}
 #endif
 
+#ifdef vector_zlib_x86
 void *resolve_hash_func(void)
 {
   unsigned int eax, ebx, ecx, edx;
-#ifdef vector_zlib_x86
   if (!__get_cpuid (1, &eax, &ebx, &ecx, &edx))
     return hash_func_default;
   /* We need SSE4.2 ISA support */
   if (!(ecx & bit_SSE4_2))
     return hash_func_default;
   return hash_func_sse42;
-#else
-  return hash_func_default;
-#endif
 }
+#endif
 
 /* ===========================================================================
  * Insert string str in the dictionary and return the previous head
@@ -1610,23 +1612,23 @@ static void fill_window_sse42(s)
            "not enough room for search");
 }
 
-static void fill_window(deflate_state *) __attribute__ ((ifunc ("resolve_fill_window")));
-#endif
-
 void *resolve_fill_window(void)
 {
-	unsigned int eax, ebx, ecx, edx;
-#ifdef vector_zlib_x86
-	if (!__get_cpuid (1, &eax, &ebx, &ecx, &edx))
-		return fill_window_default;
-	/* We need SSE4.2 ISA support */
-	if (!(ecx & bit_SSE4_2))
-		return fill_window_default;
-	return fill_window_sse42;
-#else
-    return fill_window_default;
-#endif
+    unsigned int eax, ebx, ecx, edx;
+    if (!__get_cpuid (1, &eax, &ebx, &ecx, &edx))
+        return fill_window_default;
+    /* We need SSE4.2 ISA support */
+    if (!(ecx & bit_SSE4_2))
+        return fill_window_default;
+    return fill_window_sse42;
 }
+
+static void fill_window(deflate_state *) __attribute__ ((ifunc ("resolve_fill_window")));
+#else
+void fill_window(deflate_state *s){
+    return fill_window_default(s);
+}
+#endif
 
 /* ===========================================================================
  * Flush the current block, with given end-of-file flag.
