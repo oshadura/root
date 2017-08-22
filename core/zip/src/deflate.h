@@ -176,7 +176,7 @@ typedef struct internal_state {
      * smaller than this value. This mechanism is used only for compression
      * levels >= 4.
      */
-#   define max_insert_length  max_lazy_match
+#define max_insert_length  max_lazy_match
     /* Insert new strings in the hash table only if the match length is not
      * greater than this length. This saves time but degrades compression.
      * max_insert_length is used only for compression levels <= 3.
@@ -295,11 +295,11 @@ typedef struct internal_state {
         /* in trees.c */
 void ZLIB_INTERNAL _tr_init OF((deflate_state *s));
 int ZLIB_INTERNAL _tr_tally OF((deflate_state *s, unsigned dist, unsigned lc));
-void ZLIB_INTERNAL _tr_flush_block OF((deflate_state *s, charf *buf,
+void ZLIB_INTERNAL _tr_flush_block OF((deflate_state *s, uint8_t *buf,
                         ulg stored_len, int last));
 void ZLIB_INTERNAL _tr_flush_bits OF((deflate_state *s));
 void ZLIB_INTERNAL _tr_align OF((deflate_state *s));
-void ZLIB_INTERNAL _tr_stored_block OF((deflate_state *s, charf *buf,
+void ZLIB_INTERNAL _tr_stored_block OF((deflate_state *s, uint8_t *buf,
                         ulg stored_len, int last));
 
 #define d_code(dist) \
