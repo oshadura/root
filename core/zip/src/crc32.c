@@ -304,12 +304,16 @@ uLong crc32_pclmul(crc, buf, len)
 uLong crc32(unsigned long, const unsigned char FAR *, unsigned) 
 __attribute__ ((ifunc ("resolve_crc32")));
 #else
-uLong crc32(unsigned long crc, const unsigned char FAR *buf, unsigned len){
+uLong crc32(unsigned long crc, const unsigned char FAR *buf, unsigned len)
+    uLong crc;
+    const Bytef *buf;
+    uInt len;
+{
     return crc32_default(crc, buf, len);
 }
 #endif
 
-uLong crc32_default(crc, buf, len)
+uLong crc32_default(unsigned long crc, const unsigned char FAR *buf, unsigned len)
     uLong crc;
     const Bytef *buf;
     uInt len;
