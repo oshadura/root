@@ -38,4 +38,9 @@ endforeach()
 add_custom_target(${tgt} DEPENDS ${dst_list})
 set_property(GLOBAL APPEND PROPERTY ROOT_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/inc)
 
+include_directories(${ZLIB_INCLUDE_DIR})
 ROOT_OBJECT_LIBRARY(Zip ${ZLIB_SRCS})
+
+if(builtin_zlib)
+  add_dependencies(Zip ZLIB)
+endif()
