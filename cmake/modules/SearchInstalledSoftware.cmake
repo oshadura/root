@@ -68,13 +68,16 @@ if(builtin_zlib)
     ${CMAKE_SOURCE_DIR}/core/zip/src/trees.c
     ${CMAKE_SOURCE_DIR}/core/zip/src/uncompr.c
     ${CMAKE_SOURCE_DIR}/core/zip/src/zutil.c)
+  # TBD: add ExternalProject_Add() for zlib
   add_library(ZLIB STATIC ${zlib_sources} ${ZLIB_ASMS})
   set_target_properties(ZLIB PROPERTIES COMPILE_FLAGS "-fPIC -I${CMAKE_SOURCE_DIR}/core/zip/inc")
   if(simdzlib)
     target_compile_definitions(ZLIB PRIVATE ${ZLIB_DEFINITIONS})
   endif()
-  set(ZLIB_LIBRARY " " CACHE PATH "" FORCE)
-  set(ZLIB_LIBRARIES ZLIB)
+  set(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/core/zip/inc)
+  #set(ZLIB_LIBRARY " " CACHE PATH "" FORCE)
+  set(ZLIB_LIBRARY ${CMAKE_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}ZLIB${CMAKE_STATIC_LIBRARY_SUFFIX})
+  set(ZLIB_LIBRARIES ${CMAKE_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}ZLIB${CMAKE_STATIC_LIBRARY_SUFFIX})
 endif()
 
 #---Check for Unuran ------------------------------------------------------------------
