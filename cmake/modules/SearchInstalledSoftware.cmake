@@ -56,7 +56,8 @@ if(builtin_zlib)
   add_library(ZLIB STATIC ${zlib_sources})
   set_target_properties(ZLIB PROPERTIES COMPILE_FLAGS "-fPIC -I${CMAKE_SOURCE_DIR}/core/zip/inc")
   set(ZLIB_LIBRARY " " CACHE PATH "" FORCE)
-  set(ZLIB_LIBRARIES ZLIB)
+  set(ZLIB_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/core/zip/inc/)
+  set(ZLIB_LIBRARIES ${CMAKE_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}ZLIB${CMAKE_STATIC_LIBRARY_SUFFIX})
 endif()
 
 #---Check for Unuran ------------------------------------------------------------------
