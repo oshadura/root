@@ -8,7 +8,7 @@
 
 #include "Compression.h"
 #include "RConfigure.h"
-#include "ROOT/ZSTDEngine.h"
+#include "ROOT/ZSTDEngine.hxx"
 #include "RZip.h"
 #include "Bits.h"
 #include "ZipLZMA.h"
@@ -94,10 +94,10 @@ void R__zipMultipleAlgorithm(int cxlevel, int *srcsize, char *src, int *tgtsize,
   } else if (compressionAlgorithm == ROOT::ECompressionAlgorithm::kLZ4) {
      R__zipLZ4(cxlevel, srcsize, src, tgtsize, tgt, irep);
      return;
-  } else if (compressionAlgorithm == kZSTD) {
-     ZSTDCompressionEngine zstd(cxlevel);
-     zstd.SetTarget(tgt, tgtsize);
-     *irep = zstd.StreamFull(srcsize, src);
+  } else if (compressionAlgorithm == ROOT::ECompressionAlgorithm::kZSTD) {
+     ROOT::Internal::ZSTDCompressionEngine zstd(cxlevel);
+     zstd.SetTarget(tgt, *tgtsize);
+     *irep = zstd.StreamFull(src, *srcsize);
      if (*irep < 0) {*irep = 0;}
      return;
   } else if (compressionAlgorithm == ROOT::ECompressionAlgorithm::kOldCompressionAlgo || compressionAlgorithm == ROOT::ECompressionAlgorithm::kUseGlobalCompressionSetting) {
