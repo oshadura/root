@@ -8,6 +8,7 @@
 Set(ZipRootHeaders
   ${CMAKE_CURRENT_SOURCE_DIR}/inc/Compression.h
   ${CMAKE_CURRENT_SOURCE_DIR}/inc/RZip.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/inc/ROOT/Compression.hxx
 )
 
 # ZipInternalHeaders are necessary repeats of zlib headers.
@@ -42,7 +43,11 @@ set_property(GLOBAL APPEND PROPERTY ROOT_HEADER_TARGETS ${tgt})
 set(dst_list)
 foreach(include_file ${ZLIB_HEADERS})
   get_filename_component(incname ${include_file} NAME)
-  set(dst ${CMAKE_BINARY_DIR}/include/${incname})
+  if (${incname} STREQUAL "Compression.hxx")
+    set(dst ${CMAKE_BINARY_DIR}/include/ROOT/${incname})
+  else ()
+    set(dst ${CMAKE_BINARY_DIR}/include/${incname})
+  endif()
   add_custom_command(
     OUTPUT ${dst}
     COMMAND ${CMAKE_COMMAND} -E copy ${include_file} ${dst}
