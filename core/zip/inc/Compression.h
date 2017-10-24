@@ -31,6 +31,10 @@ namespace ROOT {
 /// The current algorithms support level 1 to 9. The higher the level the greater
 /// the compression and more CPU time and memory resources used during compression.
 /// Level 0 means no compression.
+// ZSTD provides fast decompression (about 3x slower than LZ4), but
+// a wide range of compression levels.  Further, it allows the
+// generation of compression dictionaries that can greatly improve
+// compression ratios.
 enum ECompressionAlgorithm {
    /// Use the global compression setting
    kUseGlobalCompressionSetting,
@@ -42,7 +46,10 @@ enum ECompressionAlgorithm {
    kOldCompressionAlgo,
    /// Use LZ4 compression
    kLZ4,
-   /// Undefined compression algorithm (must be kept the last of the list in case a new algorithm is added).
+   /// Use ZSTD compression
+   kZSTD,
+   // if adding new algorithm types,
+   // keep this enum value last
    kUndefinedCompressionAlgorithm
 };
 
