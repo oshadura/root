@@ -1,5 +1,7 @@
-add_subdirectory(proof)
-add_subdirectory(proofplayer) # special CMakeListst.txt
+if(NOT base)
+  add_subdirectory(proof)
+  add_subdirectory(proofplayer) # special CMakeListst.txt
+endif(NOT base)
 if(NOT WIN32)
   add_subdirectory(proofbench) # special CMakeListst.txt
 endif()

@@ -1,6 +1,8 @@
-add_subdirectory (geom)        # special CMakeLists.txt
-add_subdirectory (geombuilder) # special CMakeLists.txt
-add_subdirectory (geompainter) # special CMakeLists.txt
+if(NOT base)
+   add_subdirectory (geom)        # special CMakeLists.txt
+   add_subdirectory (geombuilder) # special CMakeLists.txt
+   add_subdirectory (geompainter) # special CMakeLists.txt
+endif(NOT base)
 if(gdml)
   add_subdirectory(gdml)
   if(NOT gnuinstall)

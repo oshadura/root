@@ -1,6 +1,6 @@
 ############################################################################
 # CMakeLists.txt file for building ROOT html package
 ############################################################################
-
-ROOT_STANDARD_LIBRARY_PACKAGE(Html DEPENDENCIES Graf Thread)
-
+if(NOT base)
+   ROOT_STANDARD_LIBRARY_PACKAGE(Html DEPENDENCIES Graf Thread)
+endif()

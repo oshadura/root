@@ -1,4 +1,6 @@
-add_subdirectory(g3d) # special CMakeLists.txt
+if(NOT base)
+  add_subdirectory(g3d) # special CMakeLists.txt\
+endif(NOT base)
 if(NOT WIN32 AND x11)
   add_subdirectory(x3d) # special CMakeLists.txt
 endif()

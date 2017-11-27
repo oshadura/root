@@ -175,6 +175,7 @@ ROOT_BUILD_OPTION(xrootd ON "Build xrootd file server and its client (if support
 ROOT_BUILD_OPTION(coverage OFF "Test coverage")
 
 option(fail-on-missing "Fail the configure step if a required external package is missing" OFF)
+option(base "Base ROOT version (root modularization project)" OFF)
 option(minimal "Do not automatically search for support libraries" OFF)
 option(gminimal "Do not automatically search for support libraries, but include X11" OFF)
 option(all "Enable all optional components" OFF)
@@ -277,6 +278,15 @@ foreach(opt ${root_build_options})
     if(minimal)
       set(${opt}_defvalue OFF)
     elseif(gminimal AND NOT opt MATCHES "x11|cocoa")
+      set(${opt}_defvalue OFF)
+    endif()
+  endif()
+endforeach()
+
+#---Apply base ------------------------------------------------------------------
+foreach(opt ${root_build_options})
+  if(NOT opt MATCHES "cling|builtin_llvm")
+    if(base)
       set(${opt}_defvalue OFF)
     endif()
   endif()

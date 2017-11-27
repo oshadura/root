@@ -1,6 +1,7 @@
-
-add_subdirectory(net)
-add_subdirectory(auth)  # special CMakeListst.txt
+if(NOT base)
+  add_subdirectory(net)
+  add_subdirectory(auth)  # special CMakeListst.txt
+endif(NOT base)
 
 if(bonjour)
   add_subdirectory(bonjour)
@@ -46,4 +47,3 @@ endif()
 if(http)
    add_subdirectory(http)
 endif()
-

@@ -1,7 +1,9 @@
 add_subdirectory(io)  # special CMakeLists.txt
 add_subdirectory(rootpcm)
-add_subdirectory(sql)
-add_subdirectory(xml)
+if(NOT base)
+   add_subdirectory(sql)
+   add_subdirectory(xml)
+endif(NOT base)
 if(xml)
   add_subdirectory(xmlparser)
 endif()
