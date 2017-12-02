@@ -359,26 +359,28 @@ else()
   install(DIRECTORY ${CMAKE_BINARY_DIR}/etc/dictpch DESTINATION ${CMAKE_INSTALL_SYSCONFDIR})
 endif()
 
+if(NOT base)
 #---hsimple.root---------(use the executable for clearer dependencies and proper return code)---
 if(NOT WIN32)
-add_custom_target(hsimple ALL DEPENDS tutorials/hsimple.root)
-add_dependencies(hsimple onepcm)
-if(WIN32)
-  add_custom_command(OUTPUT tutorials/hsimple.root
+   add_custom_target(hsimple ALL DEPENDS tutorials/hsimple.root)
+   add_dependencies(hsimple onepcm)
+   if(WIN32)
+     add_custom_command(OUTPUT tutorials/hsimple.root
                      COMMAND set PATH=${CMAKE_RUNTIME_OUTPUT_DIRECTORY} &&
                              set ROOTIGNOREPREFIX=1 &&
                              $<TARGET_FILE:root.exe> -l -q -b -n -x hsimple.C -e return
                      WORKING_DIRECTORY tutorials
                      DEPENDS $<TARGET_FILE:root.exe> Cling Hist Tree Gpad Graf HistPainter move_artifacts)
-else()
-  add_custom_command(OUTPUT tutorials/hsimple.root
+   else()
+     add_custom_command(OUTPUT tutorials/hsimple.root
                      COMMAND ${ld_library_path}=${CMAKE_LIBRARY_OUTPUT_DIRECTORY}:$ENV{${ld_library_path}}
                              ROOTIGNOREPREFIX=1
                              $<TARGET_FILE:root.exe> -l -q -b -n -x hsimple.C -e return
                      WORKING_DIRECTORY tutorials
                      DEPENDS $<TARGET_FILE:root.exe> Cling Hist Tree Gpad Graf HistPainter move_artifacts)
-endif()
-install(FILES ${CMAKE_BINARY_DIR}/tutorials/hsimple.root DESTINATION ${CMAKE_INSTALL_TUTDIR} COMPONENT tests)
+   endif()
+   install(FILES ${CMAKE_BINARY_DIR}/tutorials/hsimple.root DESTINATION ${CMAKE_INSTALL_TUTDIR} COMPONENT tests)
+   endif()
 endif()
 
 #---version--------------------------------------------------------------------------------------

@@ -283,6 +283,11 @@ foreach(opt ${root_build_options})
   endif()
 endforeach()
 
+#---Apply root7 versus language------------------------------------------------------------------
+if(cxx14 OR cxx17 OR cxx14_defval OR cxx17_defval)
+  set(root7_defvalue ON)
+endif()
+
 #---Apply base ------------------------------------------------------------------
 foreach(opt ${root_build_options})
   if(NOT opt MATCHES "cling|builtin_llvm")
@@ -291,11 +296,6 @@ foreach(opt ${root_build_options})
     endif()
   endif()
 endforeach()
-
-#---Apply root7 versus language------------------------------------------------------------------
-if(cxx14 OR cxx17 OR cxx14_defval OR cxx17_defval)
-  set(root7_defvalue ON)
-endif()
 
 #---roottest option implies testing
 if(roottest OR rootbench)
