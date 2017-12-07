@@ -200,58 +200,57 @@ public:
    Bool_t Rollback();
 
    // log file for SQL statements
-   void StartLogFile(const char *fname); // *MENU*
-   void StopLogFile();                   // *MENU*
+   void              StartLogFile(const char* fname);  // *MENU*
+   void              StopLogFile();                    // *MENU*
 
-   virtual void Close(Option_t *option = ""); // *MENU*
-   virtual TKey *CreateKey(TDirectory *mother, const TObject *obj, const char *name, Int_t bufsize);
-   virtual TKey *CreateKey(TDirectory *mother, const void *obj, const TClass *cl, const char *name, Int_t bufsize);
-   virtual void DrawMap(const char * = "*", Option_t * = "") {}
-   virtual void FillBuffer(char *&) {}
-   virtual void Flush() {}
+   virtual void      Close(Option_t *option="");       // *MENU*
+   virtual TKey*     CreateKey(TDirectory* mother, const TObject* obj, const char* name, Int_t bufsize);
+   virtual TKey*     CreateKey(TDirectory* mother, const void* obj, const TClass* cl, const char* name, Int_t bufsize);
+   virtual void      DrawMap(const char* ="*",Option_t* ="") {}
+   virtual void      FillBuffer(char* &) {}
+   virtual void      Flush() {}
 
-   virtual Long64_t GetEND() const { return 0; }
-   virtual Int_t GetErrno() const { return 0; }
-   virtual void ResetErrno() const {}
+   virtual Long64_t  GetEND() const { return 0; }
+   virtual Int_t     GetErrno() const { return 0; }
+   virtual void      ResetErrno() const {}
 
-   const char *GetDataBaseName() const;
-   virtual Int_t GetNfree() const { return 0; }
-   virtual Int_t GetNbytesInfo() const { return 0; }
-   virtual Int_t GetNbytesFree() const { return 0; }
-   virtual Long64_t GetSeekFree() const { return 0; }
-   virtual Long64_t GetSeekInfo() const { return 0; }
-   virtual Long64_t GetSize() const { return 0; }
-   virtual TList *GetStreamerInfoList();
+   const char*       GetDataBaseName() const;
+   virtual Int_t     GetNfree() const { return 0; }
+   virtual Int_t     GetNbytesInfo() const {return 0; }
+   virtual Int_t     GetNbytesFree() const {return 0; }
+   virtual Long64_t  GetSeekFree() const {return 0; }
+   virtual Long64_t  GetSeekInfo() const {return 0; }
+   virtual Long64_t  GetSize() const { return 0; }
+   virtual TList*    GetStreamerInfoList();
 
-   Bool_t IsMySQL() const;
-   virtual Bool_t IsOpen() const;
-   Bool_t IsOracle() const;
-   Bool_t IsODBC() const;
+   Bool_t            IsMySQL() const;
+   virtual Bool_t    IsOpen() const;
+   Bool_t            IsOracle() const;
+   Bool_t            IsODBC() const;
 
-   virtual void MakeFree(Long64_t, Long64_t) {}
-   virtual void MakeProject(const char *, const char * = "*", Option_t * = "new") {} // *MENU*
-   virtual void Map(Option_t *) {}                                                   //
-   virtual void Map() {}                                                             //
-   virtual void Paint(Option_t * = "") {}
-   virtual void Print(Option_t * = "") const {}
-   virtual Bool_t ReadBuffer(char *, Int_t) { return kFALSE; }
-   virtual Bool_t ReadBuffer(char *, Long64_t, Int_t) { return kFALSE; }
-   virtual void ReadFree() {}
-   virtual Int_t Recover() { return 0; }
-   virtual Int_t ReOpen(Option_t *mode);
-   virtual void Seek(Long64_t, ERelativeTo = kBeg) {}
+   virtual void      MakeFree(Long64_t, Long64_t) {}
+   virtual void      MakeProject(const char *, const char* ="*", Option_t* ="new") {} // *MENU*
+   virtual void      Map() {} //
+   virtual void      Paint(Option_t* ="") {}
+   virtual void      Print(Option_t* ="") const {}
+   virtual Bool_t    ReadBuffer(char*, Int_t) { return kFALSE; }
+   virtual Bool_t    ReadBuffer(char*, Long64_t, Int_t) { return kFALSE; }
+   virtual void      ReadFree() {}
+   virtual Int_t     Recover() { return 0; }
+   virtual Int_t     ReOpen(Option_t *mode);
+   virtual void      Seek(Long64_t, ERelativeTo=kBeg) {}
 
-   virtual void SetEND(Long64_t) {}
-   virtual Int_t Sizeof() const { return 0; }
+   virtual void      SetEND(Long64_t) {}
+   virtual Int_t     Sizeof() const { return 0; }
 
-   virtual Bool_t WriteBuffer(const char *, Int_t) { return kFALSE; }
-   virtual Int_t Write(const char * = 0, Int_t = 0, Int_t = 0) { return 0; }
-   virtual Int_t Write(const char * = 0, Int_t = 0, Int_t = 0) const { return 0; }
-   virtual void WriteFree() {}
-   virtual void WriteHeader();
-   virtual void WriteStreamerInfo();
+   virtual Bool_t    WriteBuffer(const char*, Int_t) { return kFALSE; }
+   virtual Int_t     Write(const char* =0, Int_t=0, Int_t=0) { return 0; }
+   virtual Int_t     Write(const char* =0, Int_t=0, Int_t=0) const { return 0; }
+   virtual void      WriteFree() {}
+   virtual void      WriteHeader();
+   virtual void      WriteStreamerInfo();
 
-   ClassDef(TSQLFile, 1) // ROOT TFile interface to SQL database
+   ClassDef(TSQLFile,1)   // ROOT TFile interface to SQL database
 };
 
 #endif
