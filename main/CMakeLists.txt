@@ -4,21 +4,29 @@
 ############################################################################
 
 if(NOT WIN32)
-  ROOT_EXECUTABLE(rootn.exe rmain.cxx LIBRARIES New Core MathCore Rint)
+  ROOT_EXECUTABLE(rootn.exe rmain.cxx LIBRARIES New Core Rint)
   if(ROOT_PLATFORM MATCHES linux)
     SET_TARGET_PROPERTIES(rootn.exe PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
   endif()
-  ROOT_EXECUTABLE(roots.exe roots.cxx LIBRARIES Core MathCore)
-  ROOT_EXECUTABLE(ssh2rpd ssh2rpd.cxx ${CMAKE_SOURCE_DIR}/core/clib/src/strlcpy.c )
+  ROOT_EXECUTABLE(roots.exe roots.cxx LIBRARIES Core)
+  ROOT_EXECUTABLE(ssh2rpd ssh2rpd.cxx ${CMAKE_SOURCE_DIR}/core/clib/src/strlcpy.c)
+
+if(NOT base)
   ROOT_EXECUTABLE(xpdtest xpdtest.cxx LIBRARIES Proof Tree Hist RIO Net Thread Matrix MathCore)
 endif()
-ROOT_EXECUTABLE(root.exe rmain.cxx LIBRARIES Core Rint)
-ROOT_EXECUTABLE(proofserv.exe pmain.cxx LIBRARIES Core MathCore)
-if(MSVC)
-  ROOT_EXECUTABLE(hadd hadd.cxx LIBRARIES Core RIO Net Hist Graf Graf3d Gpad Tree Matrix MathCore)
-else()
-  ROOT_EXECUTABLE(hadd hadd.cxx LIBRARIES Core RIO Net Hist Graf Graf3d Gpad Tree Matrix MathCore MultiProc)
 endif()
+
+ROOT_EXECUTABLE(root.exe rmain.cxx LIBRARIES Core Rint)
+ROOT_EXECUTABLE(proofserv.exe pmain.cxx LIBRARIES Core)
+
+if(NOT base)
+  if(MSVC)
+    ROOT_EXECUTABLE(hadd hadd.cxx LIBRARIES Core RIO Net Hist Graf Graf3d Gpad Tree Matrix MathCore)
+  else()
+    ROOT_EXECUTABLE(hadd hadd.cxx LIBRARIES Core RIO Net Hist Graf Graf3d Gpad Tree Matrix MathCore MultiProc)
+  endif()
+endif()
+
 ROOT_EXECUTABLE(rootnb.exe nbmain.cxx LIBRARIES Core)
 
 if(fortran AND CMAKE_Fortran_COMPILER)

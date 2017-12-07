@@ -290,7 +290,7 @@ endif()
 
 #---Apply base ------------------------------------------------------------------
 foreach(opt ${root_build_options})
-  if(NOT opt MATCHES "cling|builtin_llvm")
+  if(NOT opt MATCHES "cling|builtin_llvm|explicitlink")
     if(base)
       set(${opt}_defvalue OFF)
     endif()
