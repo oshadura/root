@@ -339,20 +339,9 @@ struct Limits {
    template <typename T> Long64_t  LocMax(Long64_t n, const T *a);
    template <typename Iterator> Iterator LocMax(Iterator first, Iterator last);
 
-   // Binary search
-   template <typename T> Long64_t BinarySearch(Long64_t n, const T  *array, T value);
-   template <typename T> Long64_t BinarySearch(Long64_t n, const T **array, T value);
-   template <typename Iterator, typename Element> Iterator BinarySearch(Iterator first, Iterator last, Element value);
-
    // Hashing
    ULong_t Hash(const void *txt, Int_t ntxt);
    ULong_t Hash(const char *str);
-
-   // Sorting
-   template <typename Element, typename Index>
-   void Sort(Index n, const Element* a, Index* index, Bool_t down=kTRUE);
-   template <typename Iterator, typename IndexIterator>
-   void SortItr(Iterator first, Iterator last, IndexIterator index, Bool_t down=kTRUE);
 
    void BubbleHigh(Int_t Narr, Double_t *arr1, Int_t *arr2);
    void BubbleLow (Int_t Narr, Double_t *arr1, Int_t *arr2);

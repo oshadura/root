@@ -116,7 +116,7 @@ function(ROOT_GENERATE_DICTIONARY dictionary)
   set(headerfiles)
   foreach(fp ${ARG_UNPARSED_ARGUMENTS})
     if(${fp} MATCHES "[*?]") # Is this header a globbing expression?
-      file(GLOB_RECURSE files ${fp})
+      file(GLOB_RECURSE files ${fp} inc/${fp})
       foreach(f ${files})
         if(NOT f MATCHES LinkDef) # skip LinkDefs from globbing result
           set(headerfiles ${headerfiles} ${f})

@@ -1,10 +1,36 @@
 #include(RootNewMacros)
 
+include(CheckCCompilerFlag)
+
 find_package(ROOT REQUIRED COMPONENTS RIO)
 include(${ROOT_USE_FILE})
 
 get_directory_property(RootFramework_incdirs INCLUDE_DIRECTORIES)
 set_directory_properties(PROPERTIES INCLUDE_DIRECTORIES "${RootFramework_incdirs};${CMAKE_CURRENT_SOURCE_DIR}/inc;${ROOT_INCLUDE_DIR}")
+
+#----------------------------------------------------------------------------
+# ROOT_ADD_CXX_FLAG(var flag)
+#----------------------------------------------------------------------------
+function(ROOT_ADD_CXX_FLAG var flag)
+  string(REGEX REPLACE "[-.+/:= ]" "_" flag_esc "${flag}")
+  CHECK_CXX_COMPILER_FLAG("-Werror ${flag}" CXX_HAS${flag_esc})
+  if(CXX_HAS${flag_esc})
+    set(${var} "${${var}} ${flag}" PARENT_SCOPE)
+  endif()
+endfunction()
+#----------------------------------------------------------------------------
+# ROOT_ADD_C_FLAG(var flag)
+#----------------------------------------------------------------------------
+function(ROOT_ADD_C_FLAG var flag)
+  string(REGEX REPLACE "[-.+/:= ]" "_" flag_esc "${flag}")
+  CHECK_C_COMPILER_FLAG("-Werror ${flag}" C_HAS${flag_esc})
+  if(C_HAS${flag_esc})
+    set(${var} "${${var}} ${flag}" PARENT_SCOPE)
+  endif()
+endfunction()
+
+function(ROOT_ADD_TEST_SUBDIRECTORY dummy)
+endfunction()
 
 #---------------------------------------------------------------------------------------------------
 #---ROOT_STANDARD_LIBRARY_PACKAGE(libname
@@ -60,6 +86,17 @@ function(ROOT_STANDARD_LIBRARY_PACKAGE libname)
     set(STAGE1_FLAG "STAGE1")
   endif()
 
+  set(NEW_SOURCES)
+  foreach(fp ${ARG_SOURCES})
+    if(${fp} MATCHES "[*?]") # Is this header a globbing expression?
+      file(GLOB_RECURSE files "src/${fp}")
+      list(APPEND NEW_SOURCES "${files}")
+    else()
+      list(APPEND NEW_SOURCES "${fp}")
+    endif()
+  endforeach()
+  set(ARG_SOURCES "${NEW_SOURCES}")
+
   #
   list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 
@@ -68,13 +105,19 @@ function(ROOT_STANDARD_LIBRARY_PACKAGE libname)
 
 
 
-  ROOT_GENERATE_DICTIONARY(G__${libname} ${ARG_HEADERS}
+  ROOT_GENERATE_DICTIONARY(${libname} ${ARG_HEADERS}
 #                          MODULE ${libname}
                            LINKDEF ${ARG_LINKDEF}
                            OPTIONS ${ARG_DICTIONARY_OPTIONS}
                            )
 
-  add_library(${libname} SHARED ${ARG_SOURCES} G__${libname}.cxx)
+  add_library(${libname} SHARED ${ARG_SOURCES} ${libname}.cxx)
   target_link_libraries(${libname} Core ${ARG_LIBRARIES} ${ARG_DEPENDENCIES})
 
+  set(INSTALL_DIR "${CMAKE_INSTALL_PREFIX}")
+
+  install(TARGETS ${libname} LIBRARY DESTINATION "${INSTALL_DIR}")
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${libname}.rootmap" DESTINATION "${INSTALL_DIR}")
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${libname}_rdict.pcm" DESTINATION "${INSTALL_DIR}")
+  install(DIRECTORY inc DESTINATION "${INSTALL_DIR}")
 endfunction()
