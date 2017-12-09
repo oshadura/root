@@ -1,0 +1,86 @@
+#!/usr/bin/env python
+
+import argparse
+import sys
+import os
+import yaml
+
+db_source = """
+XMLIO:
+ path: /home/teemperor/root/root-cmake/io/xml/
+MathCore:
+ path: /home/teemperor/root/root-cmake/math/mathcore/
+Matrix:
+ deps: MathCore
+ path: /home/teemperor/root/root-cmake/math/matrix/
+Quadp:
+ deps: Matrix
+ path: /home/teemperor/root/root-cmake/math/quadp/
+"""
+db_manifest = yaml.load(db_source)
+
+pkg_path = os.environ['ROOT_PKG_PATH']
+
+for pkg in db_manifest:
+  if "deps" in db_manifest[pkg].keys():
+    if type(db_manifest[pkg]["deps"]) == str:
+      db_manifest[pkg]["deps"] = [db_manifest[pkg]["deps"]]
+  else:
+    db_manifest[pkg]["deps"] = []
+  db_manifest[pkg]["installed"] = os.path.isdir(os.path.join(pkg_path, pkg))
+
+#print(db_manifest)
+
+def install_pkg(pkg):
+  if pkg not in db_manifest.keys():
+    print("Can't find package " + pkg)
+    return False
+
+  if db_manifest[pkg]["installed"] == True:
+    return True
+
+  for dep in db_manifest[pkg]["deps"]:
+    if not install_pkg(dep):
+      return False
+  print("Installing " + pkg)
+  src_dir = db_manifest[pkg]["path"]
+  ec = os.system("/home/teemperor/root/root-cmake/build-pkg " + pkg + " " + src_dir)
+  if ec != 0:
+    print("Failed to install package")
+    return False
+  db_manifest[pkg]["installed"] = True
+  return True
+
+def do_install(args):
+  if not install_pkg(args[0]):
+    exit(1)
+  pass
+
+def do_list(args):
+  for pkg in list(db_manifest.keys()):
+    print(pkg)
+  pass
+
+def do_search(args):
+  print(args)
+  pass
+
+actions = {
+  "-i" : do_install,
+  "-l" : do_list,
+  "--list" : do_list,
+}
+
+if sys.argv[1] in actions.keys():
+  actions[sys.argv[1]](sys.argv[2:])
+else:
+  actions["-i"](sys.argv[1:])
+
+exit(0)
+manifest = None
+
+with open(sys.argv[1], 'r') as stream:
+  try:
+    manifest = yaml.load(stream)
+  except yaml.YAMLError as exc:
+    print(exc)

@@ -103,6 +103,16 @@ function(ROOT_STANDARD_LIBRARY_PACKAGE libname)
 
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/inc" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
+  set(dep_include_dirs)
+  set(PKG_PATH "$ENV{ROOT_PKG_PATH}")
+  list(REMOVE_ITEM ARG_DEPENDENCIES Core RIO)
+  foreach(DEP ${ARG_DEPENDENCIES})
+    include("${PKG_PATH}/${DEP}/${DEP}.cmake")
+    get_property(new_dep_include_dirs TARGET ${DEP}_${DEP} PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
+    list(APPEND dep_include_dirs "${new_dep_include_dirs}")
+    get_directory_property(RootFramework_incdirs INCLUDE_DIRECTORIES)
+    set_directory_properties(PROPERTIES INCLUDE_DIRECTORIES "${RootFramework_incdirs};${new_dep_include_dirs}")
+  endforeach()
 
 
   ROOT_GENERATE_DICTIONARY(${libname} ${ARG_HEADERS}
@@ -112,12 +122,22 @@ function(ROOT_STANDARD_LIBRARY_PACKAGE libname)
                            )
 
   add_library(${libname} SHARED ${ARG_SOURCES} ${libname}.cxx)
-  target_link_libraries(${libname} Core ${ARG_LIBRARIES} ${ARG_DEPENDENCIES})
+  target_link_libraries(${libname} Core ${ARG_LIBRARIES})
+
+  foreach(DEP ${ARG_DEPENDENCIES})
+    target_link_libraries(${libname} "${PKG_PATH}/${DEP}/lib${DEP}.so")
+  endforeach()
+
+
+  file(WRITE dependencies "${ARG_DEPENDENCIES}")
 
   set(INSTALL_DIR "${CMAKE_INSTALL_PREFIX}")
 
-  install(TARGETS ${libname} LIBRARY DESTINATION "${INSTALL_DIR}")
+  install(TARGETS ${libname} EXPORT ${libname} LIBRARY DESTINATION "${INSTALL_DIR}"
+          INCLUDES DESTINATION "${INSTALL_DIR}/inc" "${dep_include_dirs}")
+  install(EXPORT ${libname} NAMESPACE ${libname}_ DESTINATION "${INSTALL_DIR}")
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${libname}.rootmap" DESTINATION "${INSTALL_DIR}")
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${libname}_rdict.pcm" DESTINATION "${INSTALL_DIR}")
+  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/dependencies" DESTINATION "${INSTALL_DIR}")
   install(DIRECTORY inc DESTINATION "${INSTALL_DIR}")
 endfunction()
