@@ -50,7 +50,7 @@
 /* @(#) $Id$ */
 
 #include "deflate.h"
-#include "stdint.h"
+#include  <stdint.h>
 
 #if defined ZLIB_ENABLE_SIMD
 #include <immintrin.h>
@@ -210,12 +210,12 @@ void *resolve_hash_func(void)
  */
 #ifdef FASTEST
 #define INSERT_STRING(s, str, match_head) \
-   (hash_func(s, s->ins_h, s->window[(str) + (MIN_MATCH-1)]), \
+   (hash_func(s, s->ins_h, &s->window[(str) + (MIN_MATCH-1)]), \
     match_head = s->head[s->ins_h], \
     s->head[s->ins_h] = (Pos)(str))
 #else
 #define INSERT_STRING(s, str, match_head) \
-   (hash_func(s, s->ins_h, s->window[(str) + (MIN_MATCH-1)]), \
+   (hash_func(s, s->ins_h, &s->window[(str) + (MIN_MATCH-1)]), \
     match_head = s->prev[(str) & s->w_mask] = s->head[s->ins_h], \
     s->head[s->ins_h] = (Pos)(str))
 #endif
@@ -453,7 +453,7 @@ int ZEXPORT deflateSetDictionary (strm, dictionary, dictLength)
         str = s->strstart;
         n = s->lookahead - (MIN_MATCH-1);
         do {
-            hash_func(s, s->ins_h, s->window[str + MIN_MATCH-1]);
+            hash_func(s, s->ins_h, &s->window[str + MIN_MATCH-1]);
 #ifndef FASTEST
             s->prev[str & s->w_mask] = s->head[s->ins_h];
 #endif
@@ -1198,7 +1198,7 @@ int ZEXPORT deflateCopy (dest, source)
  */
 local unsigned read_buf(strm, buf, size)
     z_streamp strm;
-    Bytef *buf;
+    uint8_t *buf;
     unsigned size;
 {
     unsigned len = strm->avail_in;
@@ -1573,12 +1573,12 @@ local void fill_window_default(s)
         if (s->lookahead + s->insert >= MIN_MATCH) {
             uInt str = s->strstart - s->insert;
             s->ins_h = s->window[str];
-            hash_func(s, s->ins_h, s->window[str + 1]);
+            hash_func(s, s->ins_h, &s->window[str + 1]);
 #if MIN_MATCH != 3
             Call hash_func() MIN_MATCH-3 more times
 #endif
             while (s->insert) {
-                hash_func(s, s->ins_h, s->window[str + MIN_MATCH-1]);
+                hash_func(s, s->ins_h, &s->window[str + MIN_MATCH-1]);
 #ifndef FASTEST
                 s->prev[str & s->w_mask] = s->head[s->ins_h];
 #endif
@@ -2099,7 +2099,7 @@ local block_state deflate_fast(s, flush)
                 s->strstart += s->match_length;
                 s->match_length = 0;
                 s->ins_h = s->window[s->strstart];
-                hash_func(s, s->ins_h, s->window[s->strstart+1]);
+                hash_func(s, s->ins_h, &s->window[s->strstart+1]);
 #if MIN_MATCH != 3
                 Call hash_func() MIN_MATCH-3 more times
 #endif
@@ -2176,7 +2176,12 @@ local block_state deflate_slow(s, flush)
             s->match_length = longest_match (s, hash_head);
             /* longest_match() sets match_start */
 
-            if (s->match_length <= 5 && (s->strategy == Z_FILTERED )) {
+            if (s->match_length <= 5 && (s->strategy == Z_FILTERED
+#if TOO_FAR <= 32767
+                || (s->match_length == MIN_MATCH &&
+                    s->strstart - s->match_start > TOO_FAR)
+#endif
+                )) {
 
                 /* If prev_match is also MIN_MATCH, match_start is garbage
                  * but we will ignore the current match anyway.
