@@ -4,5 +4,6 @@
 ############################################################################
 
 ROOT_STANDARD_LIBRARY_PACKAGE(EG
+                              DICTIONARY_OPTIONS "-writeEmptyRootPCM"
                               HEADERS T*.h
                               DEPENDENCIES Graf3d Graf Gpad MathCore )

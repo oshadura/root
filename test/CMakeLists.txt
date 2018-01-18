@@ -36,6 +36,7 @@ ROOT_EXECUTABLE(hworld hworld.cxx LIBRARIES Gpad)
 
 #---event-------------------------------------------------------------------------------------
 ROOT_STANDARD_LIBRARY_PACKAGE(Event
+                              DICTIONARY_OPTIONS "-writeEmptyRootPCM"
                               NO_INSTALL_HEADERS
                               HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/Event.h
                               SOURCES Event.cxx LINKDEF EventLinkDef.h
@@ -78,16 +79,21 @@ ROOT_EXECUTABLE(vlazy vlazy.cxx LIBRARIES Core Matrix)
 ROOT_ADD_TEST(test-vlazy COMMAND vlazy)
 
 #--helloso------------------------------------------------------------------------------------
-ROOT_GENERATE_DICTIONARY(G__Hello ${CMAKE_CURRENT_SOURCE_DIR}/Hello.h MODULE Hello DEPENDENCIES Gpad Graf Hist MathCore Matrix)
+ROOT_GENERATE_DICTIONARY(G__Hello ${CMAKE_CURRENT_SOURCE_DIR}/Hello.h MODULE Hello OPTIONS "-writeEmptyRootPCM" DEPENDENCIES Gpad Graf Hist MathCore Matrix)
 ROOT_LINKER_LIBRARY(Hello Hello.cxx G__Hello.cxx LIBRARIES Graf Gpad)
 
 #--Aclockso------------------------------------------------------------------------------------
-ROOT_GENERATE_DICTIONARY(G__Aclock ${CMAKE_CURRENT_SOURCE_DIR}/Aclock.h MODULE Aclock DEPENDENCIES Graf Gpad MathCore)
+ROOT_GENERATE_DICTIONARY(G__Aclock ${CMAKE_CURRENT_SOURCE_DIR}/Aclock.h MODULE Aclock OPTIONS "-writeEmptyRootPCM" DEPENDENCIES Graf Gpad MathCore)
 ROOT_LINKER_LIBRARY(Aclock Aclock.cxx G__Aclock.cxx LIBRARIES Graf Gpad)
 
 #--bench------------------------------------------------------------------------------------
-ROOT_GENERATE_DICTIONARY(G__TBench ${CMAKE_CURRENT_SOURCE_DIR}/TBench.h MODULE TBench LINKDEF benchLinkDef.h DEPENDENCIES MathCore Tree)
-ROOT_LINKER_LIBRARY(TBench TBench.cxx G__TBench.cxx LIBRARIES Core MathCore RIO Tree)
+ROOT_STANDARD_LIBRARY_PACKAGE(TBench
+                              NO_INSTALL_HEADERS
+                              HEADERS TBench.h
+                              SOURCES TBench.cxx LINKDEF benchLinkDef.h
+                              DICTIONARY_OPTIONS "-writeEmptyRootPCM"
+                              DEPENDENCIES Core MathCore RIO Tree)
+
 ROOT_EXECUTABLE(bench bench.cxx LIBRARIES Core TBench)
 ROOT_ADD_TEST(test-bench COMMAND bench LABELS longtest)
 

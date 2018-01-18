@@ -21,5 +21,6 @@ set(headers2 TGeoPatternFinder.h TGeoCache.h TVirtualMagField.h
 
 
 ROOT_STANDARD_LIBRARY_PACKAGE(Geom
+                              DICTIONARY_OPTIONS "-writeEmptyRootPCM"
                               HEADERS ${headers1} ${headers2}
                               DEPENDENCIES Thread RIO MathCore)

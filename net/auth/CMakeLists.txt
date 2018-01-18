@@ -33,6 +33,7 @@ endif()
 
 ROOT_STANDARD_LIBRARY_PACKAGE(RootAuth
                               NO_INSTALL_HEADERS
+                              DICTIONARY_OPTIONS "-writeEmptyRootPCM"
                               HEADERS ${headers}
                               SOURCES ${sources}
                               LINKDEF LinkDefRoot.h
@@ -42,6 +43,7 @@ ROOT_STANDARD_LIBRARY_PACKAGE(RootAuth
 if(afs)
   ROOT_STANDARD_LIBRARY_PACKAGE(AFSAuth
                                 NO_INSTALL_HEADERS
+                                DICTIONARY_OPTIONS "-writeEmptyRootPCM"
                                 HEADERS AFSAuth.h AFSAuthTypes.h TAFS.h
                                 LINKDEF LinkDefAFS.h
                                 LIBRARIES ${CRYPTLIBS}

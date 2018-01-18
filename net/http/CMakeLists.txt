@@ -53,6 +53,7 @@ if(RT_LIBRARY)
 endif()
 
 ROOT_STANDARD_LIBRARY_PACKAGE(RHTTP
+                              DICTIONARY_OPTIONS "-writeEmptyRootPCM"
                               HEADERS ${headers}
                               SOURCES ${sources}
                               LIBRARIES ${SYSLIBS} ${ZLIB_LIBRARIES} ${RT_LIBRARIES} ${FASTCGI_LIBRARY}

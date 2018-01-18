@@ -13,12 +13,14 @@ list(REMOVE_ITEM sources ${CMAKE_CURRENT_SOURCE_DIR}/src/TProofDraw.cxx)
 
 ROOT_STANDARD_LIBRARY_PACKAGE(ProofPlayer
                               NO_INSTALL_HEADERS
+                              DICTIONARY_OPTIONS "-writeEmptyRootPCM"
                               HEADERS ${headers}
                               SOURCES ${sources}
                               DEPENDENCIES Proof Hist RIO Tree Net Thread MathCore)
 
 ROOT_STANDARD_LIBRARY_PACKAGE(ProofDraw
                               NO_INSTALL_HEADERS
+                              DICTIONARY_OPTIONS "-writeEmptyRootPCM"
                               HEADERS TProofDraw.h
                               LINKDEF LinkDefDraw.h
                               SOURCES TProofDraw.cxx

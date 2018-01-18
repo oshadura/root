@@ -9,7 +9,8 @@ if(root7)
 endif()
 
 
-ROOT_STANDARD_LIBRARY_PACKAGE(FitPanel 
+ROOT_STANDARD_LIBRARY_PACKAGE(FitPanel
+                              DICTIONARY_OPTIONS "-writeEmptyRootPCM"
                               HEADERS *.h ${FitPanel_v7_dict_headers}
                               SOURCES *.cxx ${FitPanel_v7_src}
                               DEPENDENCIES Gui Gpad Hist Graf Tree MathCore ${FitPanel_v7_depend} 

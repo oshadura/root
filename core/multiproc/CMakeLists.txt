@@ -9,5 +9,6 @@ set(sources TMPClient.cxx MPSendRecv.cxx TProcessExecutor.cxx TMPWorker.cxx)
 ROOT_STANDARD_LIBRARY_PACKAGE(MultiProc
                               OBJECT_LIBRARY
                               HEADERS ${headers}
+                              DICTIONARY_OPTIONS "-writeEmptyRootPCM"
                               LIBRARIES Core Net dl
                               DEPENDENCIES Core Net Tree)

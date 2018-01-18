@@ -70,6 +70,7 @@ endforeach()
 ROOT_STANDARD_LIBRARY_PACKAGE(TrackMathCoreUnitDict
                               NO_INSTALL_HEADERS
                               NO_SOURCES
+                              DICTIONARY_OPTIONS "-writeEmptyRootPCM"
                               HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/stress/TrackMathCore.h
                               LINKDEF stress/TrackMathCoreLinkDef.h
                               DEPENDENCIES Core MathCore RIO GenVector)

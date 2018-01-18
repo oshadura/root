@@ -10,5 +10,6 @@ ROOT_ADD_CXX_FLAG(CMAKE_CXX_FLAGS -Wno-ignored-qualifiers)
 
 
 ROOT_STANDARD_LIBRARY_PACKAGE(GeoCad
+                              DICTIONARY_OPTIONS "-writeEmptyRootPCM"
                               LIBRARIES ${OCC_LIBRARIES}
                               DEPENDENCIES Geom)

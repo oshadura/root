@@ -9,7 +9,7 @@ elseif(x11)
   add_subdirectory(x11ttf)      # special CMakeLists.txt
 endif()
 if(asimage)
-  add_subdirectory(asimage)     # special CMakeLists.txt
+#  add_subdirectory(asimage)     # special CMakeLists.txt
 endif()
 if(qt)
   add_subdirectory(qt)

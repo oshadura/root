@@ -12,5 +12,6 @@ set(headers TGeoVolumeEditor.h TGeoBBoxEditor.h TGeoMediumEditor.h
             TGeoPgonEditor.h TGeoTrapEditor.h TGeoGedFrame.h )
 
 ROOT_STANDARD_LIBRARY_PACKAGE(GeomBuilder
+                              DICTIONARY_OPTIONS "-writeEmptyRootPCM"
                               HEADERS ${headers}
                               DEPENDENCIES Geom Graf3d Gpad Graf Gui Ged)

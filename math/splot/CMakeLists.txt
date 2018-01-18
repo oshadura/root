@@ -2,5 +2,7 @@
 # CMakeLists.txt file for building ROOT math/splot package
 ############################################################################
 
-ROOT_STANDARD_LIBRARY_PACKAGE(SPlot DEPENDENCIES Matrix Hist Tree TreePlayer Graf3d Graf MathCore)
+ROOT_STANDARD_LIBRARY_PACKAGE(SPlot
+                             DICTIONARY_OPTIONS "-writeEmptyRootPCM"
+                             DEPENDENCIES Matrix Hist Tree TreePlayer Graf3d Graf MathCore)
 

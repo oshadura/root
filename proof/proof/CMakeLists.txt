@@ -15,6 +15,7 @@ else()
 endif()
 
 ROOT_STANDARD_LIBRARY_PACKAGE(Proof
+                              DICTIONARY_OPTIONS "-writeEmptyRootPCM"
                               HEADERS ${headers}
                               SOURCES ${sources}
                               DEPENDENCIES Net Tree Thread RIO MathCore)

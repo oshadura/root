@@ -8,5 +8,6 @@ set(headers2 X3DBuffer.h )
 
 ROOT_STANDARD_LIBRARY_PACKAGE(Graf3d
                               HEADERS ${headers1}
+                              DICTIONARY_OPTIONS "-writeEmptyRootPCM"
                               SOURCES *.cxx *.c
                               DEPENDENCIES Graf Hist Gpad MathCore)

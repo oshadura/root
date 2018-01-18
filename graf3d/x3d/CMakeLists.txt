@@ -5,6 +5,7 @@
 include_directories(${X11_INCLUDE_DIR})
 
 ROOT_STANDARD_LIBRARY_PACKAGE(X3d
+                              DICTIONARY_OPTIONS "-writeEmptyRootPCM"
                               HEADERS TViewerX3D.h TX3DFrame.h
                               SOURCES *.cxx *.c
                               LIBRARIES ${X11_LIBRARIES}

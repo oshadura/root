@@ -6,6 +6,7 @@ ROOT_GLOB_HEADERS(headers inc/TProof*.h)
 ROOT_GLOB_SOURCES(sources src/TProof*.cxx)
 
 ROOT_STANDARD_LIBRARY_PACKAGE(ProofBench
+                              DICTIONARY_OPTIONS "-writeEmptyRootPCM"
                               HEADERS ${headers}
                               SOURCES ${sources}
                               DEPENDENCIES Core Hist Gpad ProofPlayer
