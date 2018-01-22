@@ -98,6 +98,7 @@ ROOT_BUILD_OPTION(builtin_veccore OFF "Build VecCore internally (requires networ
 ROOT_BUILD_OPTION(builtin_xrootd OFF "Build XRootD internally (requires network)")
 ROOT_BUILD_OPTION(builtin_xxhash OFF "Build bundled copy of xxHash")
 ROOT_BUILD_OPTION(builtin_zlib OFF "Build bundled copy of zlib")
+ROOT_BUILD_OPTION(builtin_zstd OFF "Built included libzstd, or use system libzstd")
 ROOT_BUILD_OPTION(ccache OFF "Enable ccache usage for speeding up builds")
 ROOT_BUILD_OPTION(cefweb OFF "Enable support for CEF (Chromium Embedded Framework) web-based display")
 ROOT_BUILD_OPTION(clad ON "Build clad, the cling automatic differentiation plugin")
@@ -186,13 +187,13 @@ if (runtime_cxxmodules)
 endif(runtime_cxxmodules)
 
 #--- Compression algorithms in ROOT-------------------------------------------------------------
-set(compression_default "zlib" CACHE STRING "Default compression algorithm (zlib (default), lz4, or lzma)")
+set(compression_default "zlib" CACHE STRING "Default compression algorithm (zlib (default), lz4, zstd or lzma)")
 string(TOLOWER "${compression_default}" compression_default)
-if("${compression_default}" MATCHES "zlib|lz4|lzma")
+if("${compression_default}" MATCHES "zlib|lz4|lzma|zstd")
   message(STATUS "ROOT default compression algorithm: ${compression_default}")
 else()
   message(FATAL_ERROR "Unsupported compression algorithm: ${compression_default}\n"
-    "Known values are zlib, lzma, lz4 (case-insensitive).")
+    "Known values are zlib, lzma, lz4, zstd (case-insensitive).")
 endif()
 
 #--- Minor chnages in defaults due to platform--------------------------------------------------
@@ -262,6 +263,7 @@ if(builtin_all)
   set(builtin_xrootd_defvalue ON)
   set(builtin_xxhash_defvalue ON)
   set(builtin_zlib_defvalue ON)
+  set(builtin_zstd_defvalue ON)
 endif()
 
 #---webui always build together with root7----------------------------------------------------

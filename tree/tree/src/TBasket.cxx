@@ -1160,6 +1160,7 @@ Int_t TBasket::WriteBuffer()
          // USE_IMT is defined, we are guaranteed that the compression buffer is unique per-branch.
          // (see fCompressedBufferRef in constructor).
          R__zipMultipleAlgorithm(cxlevel, &bufmax, objbuf, &bufmax, bufcur, &nout, cxAlgorithm);
+
 #ifdef R__USE_IMT
          sentry.lock();
 #endif  // R__USE_IMT
