@@ -3,6 +3,9 @@
 # @author Pere Mato, CERN
 ############################################################################
 
+if(base_build)
+  ROOT_EXECUTABLE(root.exe rmain.cxx LIBRARIES Core Rint)
+else()
 if(NOT WIN32)
   ROOT_EXECUTABLE(rootn.exe rmain.cxx LIBRARIES New Core MathCore Rint)
   if(ROOT_PLATFORM MATCHES linux)
@@ -26,6 +29,7 @@ else()
   ROOT_EXECUTABLE(hadd hadd.cxx LIBRARIES Core RIO Net Hist Graf Graf3d Gpad Tree Matrix MathCore MultiProc)
 endif()
 ROOT_EXECUTABLE(rootnb.exe nbmain.cxx LIBRARIES Core)
+endif()
 
 if(fortran AND CMAKE_Fortran_COMPILER)
   ROOT_EXECUTABLE(g2root g2root.f LIBRARIES minicern)
