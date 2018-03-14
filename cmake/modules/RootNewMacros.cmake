@@ -1431,4 +1431,70 @@ function(find_python_module module)
    set(PY_${module_upper}_FOUND ${PY_${module_upper}_FOUND} PARENT_SCOPE)
 endfunction()
 
+#----------------------------------------------------------------------------
+# canonicalize_tool_name(name output)
+#----------------------------------------------------------------------------
+#
+function(canonicalize_tool_name name output)
+  string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/" "" nameStrip ${name})
+  string(REPLACE "-" "_" nameUNDERSCORE ${nameStrip})
+  string(TOLOWER ${nameUNDERSCORE} nameLOWER)
+  set(${output} "${nameLOWER}" PARENT_SCOPE)
+endfunction(canonicalize_tool_name)
 
+set(root_modules)
+#----------------------------------------------------------------------------
+# add_root_subdirectory(name type)
+#----------------------------------------------------------------------------
+# Custom add_root_subdirectory wrapper
+# Takes in a module name (ROOT module) and type: BASE or ALL
+macro(add_root_subdirectory name type)
+  get_directory_property(root_modules PARENT_DIRECTORY)
+  set(add_root_external_dir "${ARGN}")
+  if("${add_root_external_dir}" STREQUAL "")
+    set(add_root_external_dir ${name})
+  endif()
+  canonicalize_tool_name(${name} nameLOWER)
+  canonicalize_tool_name(${type} nameLOWER)
+  if(base_build)
+    if("${type}" STREQUAL "BASE")
+      set(root_modules  ${root_modules} ${name})
+      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${add_root_external_dir}/CMakeLists.txt)
+        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${add_root_external_dir} ${add_root_external_dir})
+      elseif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${name}/CMakeLists.txt)
+        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${name} ${name})
+      else()
+        message(WARNING "Nonexistent directory for ${name}")
+      endif()
+    endif()
+  elseif(advanced_build)
+    message(STATUS "Running advanced build of ROOT without modularization")
+  endif()
+endmacro()
+
+#----------------------------------------------------------------------------
+macro(add_root_external_project name)
+  add_root_subdirectory(${name} EXTERNAL ${ARGN})
+endmacro()
+
+#----------------------------------------------------------------------------
+macro(add_root_tool_subdirectory name)
+  add_root_external_project(${name})
+endmacro(add_root_tool_subdirectory)
+
+#---------------------------------------------------------------------------------------------------
+#---ROOT_SHOW_MODULES([var] )
+#---------------------------------------------------------------------------------------------------
+function(ROOT_SHOW_MODULES)
+  set(enabled)
+  foreach(opt ${root_modules})
+    if(${opt})
+      set(enabled "${enabled} ${opt}")
+    endif()
+  endforeach()
+  if(NOT ARGN)
+    message(STATUS "Enabled modules for ROOT: ${enabled}")
+  else()
+    set(${ARGN} "${enabled}" PARENT_SCOPE)
+  endif()
+endfunction()
