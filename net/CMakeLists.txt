@@ -1,50 +1,49 @@
-
-add_subdirectory(net)
-add_subdirectory(auth)  # special CMakeListst.txt
+add_root_subdirectory(net ALL)
+add_root_subdirectory(auth ALL)  # special CMakeListst.txt
 
 if(bonjour)
-  add_subdirectory(bonjour)
+  add_root_subdirectory(bonjour ALL)
 endif()
 
 if(krb5)
-  add_subdirectory(krb5auth)
+  add_root_subdirectory(krb5auth ALL)
 endif()
 
 if(NOT WIN32 AND ssl)
-  add_subdirectory(rpdutils)
-  add_subdirectory(rootd)
+  add_root_subdirectory(rpdutils ALL)
+  add_root_subdirectory(rootd ALL)
 endif()
 
 if(xrootd)
-  add_subdirectory(netx)
+  add_root_subdirectory(netx ALL)
 endif()
 
 if(alien)
-  add_subdirectory(alien)
+  add_root_subdirectory(alien ALL)
 endif()
 
 if(monalisa)
-  add_subdirectory(monalisa)
+  add_root_subdirectory(monalisa ALL)
 endif()
 
 if(ldap)
-   add_subdirectory(ldap)
+   add_root_subdirectory(ldap ALL)
 endif()
 
 if(globus)
-   add_subdirectory(globusauth)
+   add_root_subdirectory(globusauth ALL)
 endif()
 
 if(davix)
-   add_subdirectory(davix)
+   add_root_subdirectory(davix ALL)
 endif()
 
 if(netxng)
-   add_subdirectory(netxng)
+   add_root_subdirectory(netxng ALL)
 endif()
 
 if(http)
-   add_subdirectory(http)
-   add_subdirectory(httpsniff)
+	add_subdirectory(http ALL)
+	add_subdirectory(httpsniff ALL)
 endif()
 

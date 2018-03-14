@@ -1,13 +1,13 @@
-add_subdirectory(proof)
-add_subdirectory(proofplayer) # special CMakeListst.txt
+add_root_subdirectory(proof  ALL)
+add_root_subdirectory(proofplayer ALL) # special CMakeListst.txt
 if(NOT WIN32)
-  add_subdirectory(proofbench) # special CMakeListst.txt
+  add_root_subdirectory(proofbench ALL) # special CMakeListst.txt
 endif()
 if(afdsmgrd)
-  add_subdirectory(afdsmgrd)
+  add_root_subdirectory(afdsmgrd ALL)
 endif()
 if(xrootd AND ssl)
-  add_subdirectory(proofd)
-  add_subdirectory(proofx)
+  add_root_subdirectory(proofd ALL)
+  add_root_subdirectory(proofx ALL)
 endif()
-add_subdirectory(pq2)
+add_root_subdirectory(pq2 ALL)
