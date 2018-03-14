@@ -2,40 +2,40 @@
 # CMakeLists.txt file for building ROOT (global) core package
 ############################################################################
 
-add_subdirectory(clib)
-add_subdirectory(clingutils)
-add_subdirectory(cont)
-add_subdirectory(dictgen)
-add_subdirectory(foundation)
-add_subdirectory(meta)
-add_subdirectory(metacling)
+add_root_subdirectory(clib BASE)
+add_root_subdirectory(clingutils BASE)
+add_root_subdirectory(cont BASE)
+add_root_subdirectory(dictgen BASE)
+add_root_subdirectory(foundation BASE)
+add_root_subdirectory(meta BASE)
+add_root_subdirectory(metacling BASE)
 if(NOT WIN32)
-add_subdirectory(multiproc)
+  add_root_subdirectory(multiproc ALL)
 endif()
-add_subdirectory(rint)
-add_subdirectory(textinput)
-add_subdirectory(thread)
-add_subdirectory(imt)
-add_subdirectory(zip)
-add_subdirectory(lzma)
-add_subdirectory(lz4)
+add_root_subdirectory(rint BASE)
+add_root_subdirectory(textinput BASE)
+add_root_subdirectory(thread BASE)
+add_root_subdirectory(imt BASE)
+add_root_subdirectory(zip BASE)
+add_root_subdirectory(lzma BASE)
+add_root_subdirectory(lz4 BASE)
 
 if(NOT WIN32)
-  add_subdirectory(newdelete)
+  add_root_subdirectory(newdelete BASE)
 endif()
 
 if(UNIX)
-  add_subdirectory(unix)
+  add_root_subdirectory(unix BASE)
   set(unix_objects $<TARGET_OBJECTS:Unix>)
   set(dict_opts -DSYSTEM_TYPE_unix ${dict_opts})
 endif()
 if(WIN32)
-  add_subdirectory(winnt)
+  add_root_subdirectory(winnt BASE)
   set(winnt_objects $<TARGET_OBJECTS:Winnt>)
   set(dict_opts -DSYSTEM_TYPE_winnt ${dict_opts})
 endif()
 if(cocoa)
-  add_subdirectory(macosx)
+  add_root_subdirectory(macosx BASE)
   set(macosx_objects $<TARGET_OBJECTS:Macosx>)
   set(dict_opts -DSYSTEM_TYPE_macosx ${dict_opts})
 endif()
@@ -43,7 +43,7 @@ endif()
 set(CORE_OS_DICT_CXX_FLAGS ${dict_opts} PARENT_SCOPE)
 
 # Must come after the OS specific subdirs:
-add_subdirectory(base)
+add_root_subdirectory(base BASE)
 
 set(objectlibs $<TARGET_OBJECTS:Base>
                $<TARGET_OBJECTS:Clib>
@@ -108,7 +108,7 @@ elseif(APPLE)
   endif()
 endif()
 
-add_subdirectory(rootcling_stage1)
+add_root_subdirectory(rootcling_stage1 BASE)
 
 #-------------------------------------------------------------------------------
 ROOT_LINKER_LIBRARY(Core
