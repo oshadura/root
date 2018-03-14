@@ -521,7 +521,7 @@ if (LLVM_ENABLE_DOXYGEN)
     # global aggregate doxygen target for generating llvm and any/all
     # subprojects doxygen documentation.
     if (LLVM_BUILD_DOCS)
-      add_custom_target(doxygen ALL)
+	    add_custom_target(doxygen ALL)
     endif()
 
     option(LLVM_DOXYGEN_EXTERNAL_SEARCH "Enable doxygen external search." OFF)

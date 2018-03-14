@@ -2,30 +2,35 @@
 # CMakeLists.txt file for building ROOT main package
 # @author Pere Mato, CERN
 ############################################################################
-
-if(NOT WIN32)
-  ROOT_EXECUTABLE(rootn.exe rmain.cxx LIBRARIES New Core MathCore Rint)
-  if(ROOT_PLATFORM MATCHES linux)
-    SET_TARGET_PROPERTIES(rootn.exe PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
+# In case of root-modularization we need only root.exe
+ROOT_EXECUTABLE(root.exe rmain.cxx LIBRARIES New Core Rint)
+# For the full ROOT build we are buiding other executables
+if(NOT root-modularization)
+  if(NOT WIN32)
+    ROOT_EXECUTABLE(rootn.exe rmain.cxx LIBRARIES New Core MathCore Rint)
+    if(ROOT_PLATFORM MATCHES linux)
+      SET_TARGET_PROPERTIES(rootn.exe PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
+    endif()
+    ROOT_EXECUTABLE(roots.exe roots.cxx LIBRARIES Core MathCore)
+    ROOT_EXECUTABLE(ssh2rpd ssh2rpd.cxx ${CMAKE_SOURCE_DIR}/core/clib/src/strlcpy.c )
+    ROOT_EXECUTABLE(xpdtest xpdtest.cxx LIBRARIES Proof Tree Hist RIO Net Thread Matrix MathCore)
   endif()
-  ROOT_EXECUTABLE(roots.exe roots.cxx LIBRARIES Core MathCore)
-  ROOT_EXECUTABLE(ssh2rpd ssh2rpd.cxx ${CMAKE_SOURCE_DIR}/core/clib/src/strlcpy.c )
-  ROOT_EXECUTABLE(xpdtest xpdtest.cxx LIBRARIES Proof Tree Hist RIO Net Thread Matrix MathCore)
+  ROOT_EXECUTABLE(root.exe rmain.cxx LIBRARIES Core Rint)
+  if(MSVC)
+    set(root_exports "/EXPORT:_Init_thread_abort /EXPORT:_Init_thread_epoch
+        /EXPORT:_Init_thread_footer /EXPORT:_Init_thread_header /EXPORT:_tls_index
+        /STACK:4000000")
+    set_property(TARGET root.exe APPEND_STRING PROPERTY LINK_FLAGS ${root_exports})
+  endif()
+  ROOT_EXECUTABLE(proofserv.exe pmain.cxx LIBRARIES Core MathCore)
+  if(MSVC)
+    ROOT_EXECUTABLE(hadd hadd.cxx LIBRARIES Core RIO Net Hist Graf Graf3d Gpad Tree Matrix MathCore)
+  else()
+    ROOT_EXECUTABLE(hadd hadd.cxx LIBRARIES Core RIO Net Hist Graf Graf3d Gpad Tree Matrix MathCore MultiProc)
+  endif()
+  ROOT_EXECUTABLE(rootnb.exe nbmain.cxx LIBRARIES Core)
 endif()
-ROOT_EXECUTABLE(root.exe rmain.cxx LIBRARIES Core Rint)
-if(MSVC)
-  set(root_exports "/EXPORT:_Init_thread_abort /EXPORT:_Init_thread_epoch
-      /EXPORT:_Init_thread_footer /EXPORT:_Init_thread_header /EXPORT:_tls_index
-      /STACK:4000000")
-  set_property(TARGET root.exe APPEND_STRING PROPERTY LINK_FLAGS ${root_exports})
-endif()
-ROOT_EXECUTABLE(proofserv.exe pmain.cxx LIBRARIES Core MathCore)
-if(MSVC)
-  ROOT_EXECUTABLE(hadd hadd.cxx LIBRARIES Core RIO Net Hist Graf Graf3d Gpad Tree Matrix MathCore)
-else()
-  ROOT_EXECUTABLE(hadd hadd.cxx LIBRARIES Core RIO Net Hist Graf Graf3d Gpad Tree Matrix MathCore MultiProc)
-endif()
-ROOT_EXECUTABLE(rootnb.exe nbmain.cxx LIBRARIES Core)
+
 
 if(fortran AND CMAKE_Fortran_COMPILER)
   ROOT_EXECUTABLE(g2root g2root.f LIBRARIES minicern)
@@ -45,11 +50,11 @@ if(python)
     configure_file(${rawUtilName} ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/${utilName} @ONLY)
 
     install(FILES ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/${utilName}
-                                 DESTINATION ${CMAKE_INSTALL_BINDIR} 
+                                 DESTINATION ${CMAKE_INSTALL_BINDIR}
                                  RENAME ${utilName}
                                  PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                                              GROUP_EXECUTE GROUP_READ
-                                             WORLD_EXECUTE WORLD_READ 
+                                             WORLD_EXECUTE WORLD_READ
                                  COMPONENT applications)
   endforeach()
 

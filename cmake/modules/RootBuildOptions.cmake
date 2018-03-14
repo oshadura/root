@@ -20,7 +20,7 @@ endfunction()
 function(ROOT_APPLY_OPTIONS)
   foreach(opt ${root_build_options})
      option(${opt} "${${opt}_description}" ${${opt}_defvalue})
-  endforeach()  
+  endforeach()
 endfunction()
 
 #---------------------------------------------------------------------------------------------------
@@ -181,6 +181,7 @@ ROOT_BUILD_OPTION(xml ON "XML parser interface")
 ROOT_BUILD_OPTION(xrootd ON "Build xrootd file server and its client (if supported)")
 ROOT_BUILD_OPTION(coverage OFF "Test coverage")
 
+# Move it to RootModularization.cmake (?)
 option(fail-on-missing "Fail the configure step if a required external package is missing" OFF)
 option(minimal "Do not automatically search for support libraries" OFF)
 option(gminimal "Do not automatically search for support libraries, but include X11" OFF)
@@ -190,13 +191,22 @@ option(roottest "Include roottest, if roottest exists in root or if it is a sibl
 option(rootbench "Include rootbench, if rootbench exists in root or if it is a sibling directory." OFF)
 option(clingtest "Include cling tests. NOTE that this makes llvm/clang symbols visible in libCling." OFF)
 
+option(root-get "Package manager for ROOT - root-get" ON)
+
+option(root-modularization "ROOT modularization" ON)
+option(root-full-build "ROOT full build with no modularization" OFF)
+
+if(root-full-build)
+  set(root-modularization OFF CACHE BOOL "" FORCE)
+endif()
+
 if (runtime_cxxmodules)
   set(pch_defvalue OFF)
 endif(runtime_cxxmodules)
 
 #--- Compression algorithms in ROOT-------------------------------------------------------------
 if(NOT compression_default MATCHES "zlib|lz4|lzma")
-  message(STATUS "Not supported compression algorithm, ROOT compression algorithms are zlib, lzma and lz4. 
+  message(STATUS "Not supported compression algorithm, ROOT compression algorithms are zlib, lzma and lz4.
     ROOT will fall back to default algorithm: lz4")
   set(compression_default "lz4" CACHE STRING "" FORCE)
 else()
@@ -284,6 +294,11 @@ if(builtin_all)
   set(builtin_zlib_defvalue ON)
 endif()
 
+#---Apply root7 versus language------------------------------------------------------------------
+if(cxx14 OR cxx17 OR cxx14_defval OR cxx17_defval)
+  set(root7_defvalue ON)
+endif()
+
 #---Vc supports only x86_64 architecture-------------------------------------------------------
 if (NOT CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
   message(STATUS "Vc does not support ${CMAKE_SYSTEM_PROCESSOR}. Support for Vc disabled.")
@@ -292,7 +307,7 @@ endif()
 
 #---Options depending of CMake Generator-------------------------------------------------------
 if( CMAKE_GENERATOR STREQUAL Ninja)
-   set(fortran_defvalue OFF) 
+   set(fortran_defvalue OFF)
 endif()
 
 #---Apply minimal or gminimal------------------------------------------------------------------
@@ -306,9 +321,16 @@ foreach(opt ${root_build_options})
   endif()
 endforeach()
 
-#---Apply root7 versus language------------------------------------------------------------------
-if(cxx14 OR cxx17 OR cxx14_defval OR cxx17_defval)
-  set(root7_defvalue ON)
+#---Apply root-modularization (RootModularization.cmake)----------------------------------------------------------------------------
+# We are removing all option that we had and building ROOT from base
+# FIXME  we will remove options for builtin_llvm|builtin_clang soon, since they could be external packages
+if(root-modularization)
+  foreach(opt ${root_build_options})
+    # builtin_llvm|builtin_clang - we will use external LLVM and clang
+    if(NOT opt MATCHES "cling|explicitlink")
+      set(${opt}_defvalue OFF)
+    endif()
+  endforeach()
 endif()
 
 #---roottest option implies testing
@@ -359,6 +381,3 @@ if(macos_native)
     message(STATUS "Option 'macos_native' is only for MacOS systems. Ignoring it.")
   endif()
 endif()
-
-
-

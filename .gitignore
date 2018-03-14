@@ -70,6 +70,7 @@ tags
 /.gdb_history
 /buildtools
 /roottest
+/root-get
 /*.mk
 /.project
 /files

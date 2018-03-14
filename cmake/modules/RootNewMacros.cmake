@@ -915,6 +915,7 @@ endfunction()
 #                                )
 #---------------------------------------------------------------------------------------------------
 function(ROOT_STANDARD_LIBRARY_PACKAGE libname)
+  message(STATUS "[modulariz.] ROOT_STANDARD_LIBRARY_PACKAGE for module " ${libname})
   set(options NO_INSTALL_HEADERS STAGE1 NO_HEADERS NO_SOURCES OBJECT_LIBRARY NO_MODULE)
   set(oneValueArgs)
   set(multiValueArgs DEPENDENCIES HEADERS SOURCES BUILTINS LIBRARIES DICTIONARY_OPTIONS LINKDEF INSTALL_OPTIONS)
@@ -1431,4 +1432,102 @@ function(find_python_module module)
    set(PY_${module_upper}_FOUND ${PY_${module_upper}_FOUND} PARENT_SCOPE)
 endfunction()
 
+#----------------------------------------------------------------------------
+# canonicalize_tool_name(name output)
+#----------------------------------------------------------------------------
+#
+function(canonicalize_tool_name name output)
+  string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/" "" nameStrip ${name})
+  string(REPLACE "-" "_" nameUNDERSCORE ${nameStrip})
+  string(TOLOWER ${nameUNDERSCORE} nameLOWER)
+  set(${output} "${nameLOWER}" PARENT_SCOPE)
+endfunction(canonicalize_tool_name)
 
+#----------------------------------------------------------------------------
+# add_root_subdirectory(name type)
+#----------------------------------------------------------------------------
+# Custom add_root_subdirectory wrapper
+# Takes in the subdirectory name, and an optional
+# path if it differs from the name.
+macro(add_root_subdirectory name)
+  message(STATUS "[modulariz.]  add_root_subdirectory for module " ${name})
+  set(add_root_external_dir "${ARGN}")
+  if("${add_root_external_dir}" STREQUAL "")
+    set(add_root_external_dir ${name})
+  endif()
+  # Maka sure that we have a genertic lower-case name of the module as an input
+  canonicalize_tool_name(${name} nameLOWER)
+  # Searching for available packages for the module
+  # FIXME: now it is only one dimension we have only one module -> in one package
+  # We need to extend it to have as a multi-dimensions search tool
+  set(listname)
+  SET_PROPERTY(GLOBAL PROPERTY listname "")
+  if(root-modularization)
+    foreach(list_name IN LISTS rootpackagemap)
+      foreach(value IN LISTS ${list_name})
+          if("${value}" STREQUAL "${name}")
+            set(listname ${list_name})
+            message(STATUS "[modulariz.] DEBUG: " ${list_name} " & " ${value})
+            message(STATUS "[modulariz.] We found " ${listname} " package for the ROOT module " ${name})
+          else()
+            #message(STATUS "!No match!")
+          endif()
+        endforeach()
+      endforeach()
+    #
+    # Check  if ${name} is in DB and return list for it
+    # ROOT_GET_LIST_NAME(${rootpackagemap} ${name} ${list_name})
+    #
+    # print all values
+    # ROOT_PRINT_TUPLE_VALUES(${rootpackagemap})
+    #
+    # message(STATUS "Input for function ROOT_PARSE_TUPLE_VALUES(): " ${name} " + " ${return_package})
+    # ROOT_PARSE_TUPLE_VALUES(${list_name} ${name} ${return_package})
+    # message(STATUS "output from function ROOT_PARSE_TUPLE_VALUES(): " ${name} " = " ${return_package})
+    #
+    # Checking if our package-manager requesting package to be build, is actually one of the packages found for module ${name}
+    set(return_value)
+    SET_PROPERTY(GLOBAL PROPERTY return_value "")
+    set(pm_package)
+    SET_PROPERTY(GLOBAL PROPERTY pm_package "")
+    #ROOT_GET_PACKAGE(${listname} ${return_value})
+    # It suppose to be one package now since we are building only base
+    message(STATUS "[modulariz.] Check out what we have required from ROOT packages we want to build: " ${root_packages})
+    # listname ?= BASE
+    foreach(opt ${root_packages})
+      if("${opt}" STREQUAL "${listname}")
+        set(return_value ON)
+        set(pm_package ${opt})
+      else()
+        set(return_value OFF)
+      endif()
+    endforeach()
+    # If we have return_value TRUE -> then we can go ahead and add our directories
+    if(return_value)
+      # Extending ROOT modules with ${name}
+      set(root_modules ${root_modules} ${name})
+      #set(root_packages ${root_packages} ${listname})
+      if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${name}/CMakeLists.txt)
+        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${name} ${name})
+      #FIXME: missing elseif()
+      # Adding possibility to add external directory
+      else()
+        message(STATUS "[modulariz.] We dont have " ${name} " module!")
+      endif()
+    else()
+      message(STATUS "[modulariz.] Working only with packages which doesn't have " ${name} " module.")
+    endif()
+  else()
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${name} ${name})
+  endif()
+endmacro()
+
+#----------------------------------------------------------------------------
+macro(add_root_external_project name)
+  add_root_subdirectory(${name} EXTERNAL ${ARGN})
+endmacro()
+
+#----------------------------------------------------------------------------
+macro(add_root_tool_subdirectory name)
+  add_root_external_project(${name})
+endmacro(add_root_tool_subdirectory)
