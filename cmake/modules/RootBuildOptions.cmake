@@ -175,6 +175,7 @@ ROOT_BUILD_OPTION(xml ON "XML parser interface")
 ROOT_BUILD_OPTION(xrootd ON "Build xrootd file server and its client (if supported)")
 ROOT_BUILD_OPTION(coverage OFF "Test coverage")
 
+# Move it to RootModularization.cmake (?)
 option(fail-on-missing "Fail the configure step if a required external package is missing" OFF)
 option(minimal "Do not automatically search for support libraries" OFF)
 option(gminimal "Do not automatically search for support libraries, but include X11" OFF)
@@ -264,6 +265,11 @@ if(builtin_all)
   set(builtin_zlib_defvalue ON)
 endif()
 
+#---Apply root7 versus language------------------------------------------------------------------
+if(cxx14 OR cxx17 OR cxx14_defval OR cxx17_defval)
+  set(root7_defvalue ON)
+endif()
+
 #---Vc supports only x86_64 architecture-------------------------------------------------------
 if (NOT CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
   message(STATUS "Vc does not support ${CMAKE_SYSTEM_PROCESSOR}. Support for Vc disabled.")
@@ -286,9 +292,13 @@ foreach(opt ${root_build_options})
   endif()
 endforeach()
 
-#---Apply root7 versus language------------------------------------------------------------------
-if(cxx14 OR cxx17 OR cxx14_defval OR cxx17_defval)
-  set(root7_defvalue ON)
+#---Apply base-build (RootModularization.cmake)----------------------------------------------------------------------------
+if(base_build)
+  foreach(opt ${root_build_options})
+    if(NOT opt MATCHES "cling|builtin_llvm|builtin_clang|explicitlink")
+      set(${opt}_defvalue OFF)
+    endif()
+  endforeach()
 endif()
 
 #---roottest option implies testing
