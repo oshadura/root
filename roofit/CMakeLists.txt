@@ -13,11 +13,11 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/roofit/inc)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/roofitcore/inc) 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/roostats/inc) 
 
-add_subdirectory(roofitcore)
-add_subdirectory(roofit)
-add_subdirectory(roostats)
+add_root_subdirectory(roofitcore ALL)
+add_root_subdirectory(roofit ALL)
+add_root_subdirectory(roostats ALL)
 if(xml OR ROOT_xml_FOUND)
-  add_subdirectory(histfactory)
+  add_root_subdirectory(histfactory ALL)
 endif()
 
 
