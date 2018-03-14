@@ -55,7 +55,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 #---Enable Folders in IDE like Visual Studio----------------------------------------------------
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-#---Load some basic macros which are needed later for the confiuration and build----------------
+#---Load some basic macros which are needed later for the configuration and build----------------
+include(RootModularization)
 include(RootBuildOptions)
 include(RootNewMacros)
 include(CheckCompiler)
@@ -109,6 +110,7 @@ ROOT_CHECK_OUT_OF_SOURCE_BUILD()
 #---Here we look for installed software and switch on and of the different build options--------
 include(SearchInstalledSoftware)
 ROOT_SHOW_OPTIONS()
+#FIXME: add here management for modularization part
 
 #---Here we add tcmalloc to the linker flags if needed------------------------------------------
 if (TCMALLOC_FOUND)
@@ -145,6 +147,8 @@ endforeach()
 set(stamp_file ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/move_artifacts.stamp)
 add_custom_command(OUTPUT ${stamp_file}
                    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/LICENSE ${CMAKE_BINARY_DIR}/LICENSE
+                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/etc/cmake
+                   COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/cmake/modules/RootNewMacros.cmake ${CMAKE_BINARY_DIR}/etc/cmake/
                    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/README ${CMAKE_BINARY_DIR}/README
                    COMMAND ${CMAKE_COMMAND} -E touch ${stamp_file}
                    COMMENT "Copying directories such as etc, icons, fonts, etc. to build area")
@@ -165,7 +169,7 @@ foreach(artifact_file ${artifact_files})
 endforeach()
 add_custom_target(move_artifacts DEPENDS ${stamp_file} ${artifact_files_builddir})
 
-add_subdirectory (interpreter)
+add_root_subdirectory(interpreter BASE)
 # Add the compilation flags from LLVM to the flags we use to compile cling-based tools.
 set(CLING_CXXFLAGS "${CLING_CXXFLAGS} ${ROOT_LLVM_FLAGS}")
 
@@ -264,34 +268,38 @@ endif(cxxmodules)
 
 #---Recurse into the given subdirectories.  This does not actually cause another cmake executable
 #  to run. The same process will walk through the project's entire directory structure.
-add_subdirectory (core)
-add_subdirectory (build)
-add_subdirectory (math)
-add_subdirectory (hist)
-add_subdirectory (tree)
-add_subdirectory (io)
-add_subdirectory (net)
-add_subdirectory (graf2d)
-add_subdirectory (graf3d)
-add_subdirectory (gui)
-add_subdirectory (proof)
-add_subdirectory (html)
-add_subdirectory (montecarlo)
-add_subdirectory (geom)
-add_subdirectory (rootx)
-add_subdirectory (misc)
-add_subdirectory (main)
-add_subdirectory (bindings)
-add_subdirectory (sql)
+add_root_subdirectory(core BASE)
+add_root_subdirectory(build ALL)
+add_root_subdirectory(math ALL)
+add_root_subdirectory(hist ALL)
+add_root_subdirectory(tree ALL)
+add_root_subdirectory(io BASE)
+add_root_subdirectory(net ALL)
+add_root_subdirectory(graf2d ALL)
+add_root_subdirectory(graf3d ALL)
+add_root_subdirectory(gui ALL)
+add_root_subdirectory(proof ALL)
+add_root_subdirectory(html ALL)
+add_root_subdirectory(montecarlo ALL)
+add_root_subdirectory(geom ALL)
+add_root_subdirectory(rootx ALL)
+add_root_subdirectory(misc ALL)
+add_root_subdirectory(main BASE)
+add_root_subdirectory(bindings ALL)
+add_root_subdirectory(sql ALL)
 if(tmva)
-  add_subdirectory(tmva)
+  add_root_subdirectory(tmva ALL)
 endif()
 if(roofit)
-  add_subdirectory(roofit)
+  add_root_subdirectory(roofit ALL)
 endif()
 
 ROOT_ADD_TEST_SUBDIRECTORY(test)
 ROOT_ADD_TEST_SUBDIRECTORY(tutorials)
+
+#---ROOT Modularization---------------------------------------------------------------------------
+
+ROOT_SHOW_MODULES()
 
 #---CXX MODULES-----------------------------------------------------------------------------------
 # Take all the modulemap contents we collected from the packages and append them to our modulemap.
@@ -367,26 +375,29 @@ else()
   install(DIRECTORY ${CMAKE_BINARY_DIR}/etc/dictpch DESTINATION ${CMAKE_INSTALL_SYSCONFDIR})
 endif()
 
+if(base_build)
+#FIX: add unit test for ROOT base build.
+else()
 #---hsimple.root---------(use the executable for clearer dependencies and proper return code)---
-add_custom_target(hsimple ALL DEPENDS tutorials/hsimple.root)
-add_dependencies(hsimple onepcm)
-if(WIN32)
-  add_custom_command(OUTPUT tutorials/hsimple.root
+  add_custom_target(hsimple ALL DEPENDS tutorials/hsimple.root)
+  add_dependencies(hsimple onepcm)
+  if(WIN32)
+    add_custom_command(OUTPUT tutorials/hsimple.root
                      COMMAND set PATH=${CMAKE_RUNTIME_OUTPUT_DIRECTORY} &&
                              set ROOTIGNOREPREFIX=1 &&
                              $<TARGET_FILE:root.exe> -l -q -b -n -x hsimple.C -e return
                      WORKING_DIRECTORY tutorials
                      DEPENDS $<TARGET_FILE:root.exe> Cling Hist Tree Gpad Graf HistPainter move_artifacts)
-else()
-  add_custom_command(OUTPUT tutorials/hsimple.root
+  else()
+    add_custom_command(OUTPUT tutorials/hsimple.root
                      COMMAND ${ld_library_path}=${CMAKE_LIBRARY_OUTPUT_DIRECTORY}:$ENV{${ld_library_path}}
                              ROOTIGNOREPREFIX=1
                              $<TARGET_FILE:root.exe> -l -q -b -n -x hsimple.C -e return
                      WORKING_DIRECTORY tutorials
                      DEPENDS $<TARGET_FILE:root.exe> Cling Hist Tree Gpad Graf HistPainter move_artifacts)
+  endif()
+  install(FILES ${CMAKE_BINARY_DIR}/tutorials/hsimple.root DESTINATION ${CMAKE_INSTALL_TUTDIR} COMPONENT tests)
 endif()
-install(FILES ${CMAKE_BINARY_DIR}/tutorials/hsimple.root DESTINATION ${CMAKE_INSTALL_TUTDIR} COMPONENT tests)
-
 #---version--------------------------------------------------------------------------------------
 if(NOT WIN32)
 add_custom_target(version COMMAND ${CMAKE_SOURCE_DIR}/build/unix/makeversion.sh ${CMAKE_BINARY_DIR}
