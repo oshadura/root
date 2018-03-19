@@ -1,23 +1,21 @@
 sudo: false
 
 language: cpp
-os: linux
-compiler: clang
 
+os: linux
+      
 cache:
+  apt: true
   ccache: true
 
-# Do not build our sync branch.
 branches:
   only:
-    - master
+    - kiryteo-rootbase-cmake
     - Travis*
 
-# Without the top-level env, no job will be allowed to fail.
 env:
 
 matrix:
-  # Abort all builds on a single failing matrix entry.
   fast_finish: true
 
   exclude:
@@ -50,12 +48,45 @@ matrix:
     - env: TOOL=minuit2-standalone
       script: cd math/minuit2 && .ci/make_and_test.sh
 
+
+    - env: TOOL=cmake-build
+      addons:
+        apt:
+          sources: *sources
+          packages:
+            - cmake-data
+            - cmake
+
+      script:
+        - |
+	  if [[ $TOOL == cmake ]]; then
+    	    mkdir $TRAVIS_BUILD_DIR/inst
+    	    mkdir ../builds
+    	    cd ../builds
+    	    cmake -DCMAKE_INSTALL_PREFIX:PATH=$TRAVIS_BUILD_DIR/inst -DCMAKE_CXX_STANDARD=14 -Dbuiltin_llvm=off ../travis-work
+    	    make
+    	    make DESTDIR=$TRAVIS_BUILD_DIR/inst install
+    	    cd -
+  	  fi
+
+
   allow_failures:
     # clang-tidy-modernize is still experimental
     - env: TOOL=clang-tidy-modernize
     # a lot of code doesn't follow clang-format yet
     - env: TOOL=clang-format
 
+before_deploy:
+- python $TRAVIS_BUILD/tarball.py $TRAVIS_BUILD_DIR/inst
+
+
+deploy:
+  provider: releases
+  api_key: "GITHUB OAUTH TOKEN"
+  file: "$TRAVIS_BUILD_DIR/inst.tar.gz"
+  skip_cleanup: true
+  on:
+    branch: kiryteo-rootbase-cmake
 
 # This will never run since there is not a clang-tidy only TOOL
 #  elif [[ "$TRAVIS_EVENT_TYPE" = "cron" ]] && [[ $TOOL == 'clang-tidy' ]]; then
@@ -66,5 +97,5 @@ matrix:
 #    echo "run-clang-tidy-3.9.py -j4 -clang-tidy-binary $(which clang-tidy-3.9) -checks=-*,clang-analyzer-* $FILES_REGEX"
 #    run-clang-tidy-3.9.py -j4 -clang-tidy-binary $(which clang-tidy-3.9) -checks=-*,clang-analyzer-* $FILES_REGEX
 #  fi
-  
+
 on_failure: echo "Showing current directory contents" && ls -la
