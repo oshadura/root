@@ -373,7 +373,7 @@ void stress_binary_op(Int_t vsize)
   ok &= VerifyVectorValue(v1,pattern,gVerbose,EPSILON);
   if (gVerbose)
     std::cout << "  subtracting the vector from itself" << std::endl;
-  v1 -= v1;
+  v1 = v1 - v1; //avoiding compiler warning
   ok &= VerifyVectorValue(v1,0.,gVerbose,EPSILON);
   if (gVerbose)
     std::cout << "  adding two vectors together" << std::endl;
@@ -403,7 +403,7 @@ void stress_binary_op(Int_t vsize)
   ok &= VerifyVectorIdentity(v,v1,gVerbose,epsilon);
   if (gVerbose)
     std::cout << "   clear both v and v1, by subtracting from itself and via add()" << std::endl;
-  v1 -= v1;
+  v1 = v1 - v1; //avoiding compiler warning
   Add(v,-3.,vp);
   ok &= VerifyVectorIdentity(v,v1,gVerbose,epsilon);
 

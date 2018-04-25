@@ -807,7 +807,7 @@ void mstress_binary_ebe_op(Int_t rsize, Int_t csize)
   ok &= VerifyMatrixValue(m1,pattern,gVerbose,EPSILON);
   if (gVerbose)
     std::cout << "  subtracting the matrix from itself" << std::endl;
-  m1 -= m1;
+  m1 = m1 - m1; //avoiding compiler warning
   ok &= VerifyMatrixValue(m1,0.,gVerbose,EPSILON);
   if (gVerbose)
     std::cout << "  adding two matrices together" << std::endl;
@@ -828,7 +828,7 @@ void mstress_binary_ebe_op(Int_t rsize, Int_t csize)
   ok &= VerifyMatrixIdentity(m,m1,gVerbose,EPSILON);
   if (gVerbose)
     std::cout << "   clear both m and m1, by subtracting from itself and via add()" << std::endl;
-  m1 -= m1;
+  m1 = m1 - m1; //avoiding compiler warning
   Add(m,-3.,mp);
   ok &= VerifyMatrixIdentity(m,m1,gVerbose,EPSILON);
 
@@ -2589,7 +2589,7 @@ void spstress_binary_ebe_op(Int_t rsize, Int_t csize)
   ok &= VerifyMatrixValue(m1,pattern,gVerbose,EPSILON);
   if (gVerbose)
     std::cout << "  subtracting the matrix from itself" << std::endl;
-  m1 -= m1;
+  m1 = m1 - m1; //avoiding compiler warning
   ok &= VerifyMatrixValue(m1,0.,gVerbose,EPSILON);
   m1.SetSparseIndex(m_d);
 
@@ -2607,7 +2607,7 @@ void spstress_binary_ebe_op(Int_t rsize, Int_t csize)
   ok &= VerifyMatrixIdentity(m,m1,gVerbose,EPSILON);
   if (gVerbose)
     std::cout << "   clear both m and m1, by subtracting from itself and via add()" << std::endl;
-  m1 -= m1;
+  m1 = m1 - m1; //avoiding compiler warning
   Add(m,-3.,mp);
   ok &= VerifyMatrixIdentity(m,m1,gVerbose,EPSILON);
 
@@ -3444,7 +3444,7 @@ void vstress_binary_op(Int_t vsize)
   ok &= VerifyVectorValue(v1,pattern,gVerbose,EPSILON);
   if (gVerbose)
     std::cout << "  subtracting the vector from itself" << std::endl;
-  v1 -= v1;
+  v1 = v1 - v1; //avoiding compiler warning
   ok &= VerifyVectorValue(v1,0.,gVerbose,EPSILON);
   if (gVerbose)
     std::cout << "  adding two vectors together" << std::endl;
@@ -3473,7 +3473,7 @@ void vstress_binary_op(Int_t vsize)
   ok &= VerifyVectorIdentity(v,v1,gVerbose,epsilon);
   if (gVerbose)
     std::cout << "   clear both v and v1, by subtracting from itself and via add()" << std::endl;
-  v1 -= v1;
+  v1 = v1 - v1; //avoiding compiler warning
   Add(v,-3.,vp);
   ok &= VerifyVectorIdentity(v,v1,gVerbose,epsilon);
 
