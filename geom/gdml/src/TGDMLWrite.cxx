@@ -2026,7 +2026,7 @@ TString TGDMLWrite::GenName(TString oldname, TString objPointer)
          break;
       case kwithoutSufixNotUniq:
          //no change
-         newname = newname;
+         static_cast<void>(newname);
          break;
    }
    //store the name (mapped to pointer)
