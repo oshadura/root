@@ -150,7 +150,7 @@ static void compress_block (deflate_state *s, const ct_data *ltree,
                               const ct_data *dtree);
 static int  detect_data_type (deflate_state *s);
 static unsigned bi_reverse (unsigned value, int length);
-static void bi_windup      (deflate_state *s);
+void ZLIB_INTERNAL bi_windup      (deflate_state *s);
 static void bi_flush       (deflate_state *s);
 static void copy_block     (deflate_state *s, uint8_t *buf, unsigned len,
                               int header);
@@ -173,7 +173,6 @@ static void gen_trees_header OF(void);
  * Send a value on a given number of bits.
  * IN assertion: length <= 64 and value fits in length bits.
  */
-
 
 static void send_bits(deflate_state* s, uint64_t val, int len) {
 
@@ -1250,7 +1249,7 @@ static void bi_flush(s)
 /* ===========================================================================
  * Flush the bit buffer and align the output on a byte boundary
  */
-static void bi_windup(s)
+void ZLIB_INTERNAL bi_windup(s)
     deflate_state *s;
 {
     while (s->bi_valid >= 16) {

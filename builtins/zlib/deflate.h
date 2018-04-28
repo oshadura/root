@@ -238,11 +238,10 @@ typedef struct internal_state {
     uint64_t static_len;     /* bit length of current block with static trees */
     uint32_t matches;       /* number of string matches in current block */
     uint32_t insert;        /* bytes at end of window left to insert */
-
-#ifdef DEBUG
+// enabling Debug zlib
     uint64_t compressed_len; /* total bit length of compressed file mod 2^32 */
     uint64_t bits_sent;      /* bit length of compressed data sent mod 2^32 */
-#endif
+
 
     uint64_t bi_buf;
     /* Output buffer. bits are inserted starting at the bottom (least
@@ -260,7 +259,20 @@ typedef struct internal_state {
      * updated to the new high water mark.
      */
 
+    int block_open;
+    /* Whether or not a block is currently open for the QUICK deflation scheme.
+     * This is set to 1 if there is an active block, or 0 if the block was just
+     * closed.
+     */
+
 } deflate_state;
+
+typedef enum {
+    need_more,      /* block not completed, need more input or more output */
+    block_done,     /* block flush performed */
+    finish_started, /* finish started, need only more output at next deflate */
+    finish_done     /* finish done, accept no more input or output */
+} block_state;
 
 /* Output a byte on the stream.
  * IN assertion: there is enough room in pending_buf.
@@ -300,6 +312,20 @@ void ZLIB_INTERNAL _tr_flush_bits(deflate_state *s);
 void ZLIB_INTERNAL _tr_align(deflate_state *s);
 void ZLIB_INTERNAL _tr_stored_block(deflate_state *s, uint8_t *buf,
                         uint64_t stored_len, int last);
+void ZLIB_INTERNAL bi_windup(deflate_state *s);
+
+#ifndef ZLIB_DEBUG
+#  define send_code(s, c, tree) send_bits(s, tree[c].Code, tree[c].Len)
+/* Send a code of the given tree.c and tree must not have side effects */
+
+#else /* ZLIB_DEBUG */
+#  define send_code(s, c, tree) \
+    {  if (z_verbose > 2) { \
+           fprintf(stderr, "\ncd %3d ", (c)); \
+       } \
+       send_bits(s, tree[c].Code, tree[c].Len); \
+     }
+#endif
 
 #define d_code(dist) \
    ((dist) < 256 ? _dist_code[dist] : _dist_code[256+((dist)>>7)])
