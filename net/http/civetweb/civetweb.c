@@ -31,6 +31,13 @@
 #if defined(__GNUC__) && !defined(_GNU_SOURCE)
 #define _GNU_SOURCE /* for setgroups(), pthread_setname_np() */
 #endif
+/* Removing _GNU_SOURCE for Clang to avoid  
+ * implicit declaration of function 'pthread_setname_np' is invalid in C99 
+ * [-Wimplicit-function-declaration]
+*/
+#if defined(__clang__)
+#undef _GNU_SOURCE
+#endif
 #if defined(__linux__) && !defined(_XOPEN_SOURCE)
 #define _XOPEN_SOURCE 600 /* For flockfile() on Linux */
 #endif
@@ -2699,7 +2706,7 @@ mg_set_thread_name(const char *name)
     && ((__GLIBC__ > 2) || ((__GLIBC__ == 2) && (__GLIBC_MINOR__ >= 12)))
 	/* pthread_setname_np first appeared in glibc in version 2.12*/
 	(void)pthread_setname_np(pthread_self(), threadName);
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__clang__)
 	/* on linux we can use the old prctl function */
 	(void)prctl(PR_SET_NAME, threadName, 0, 0, 0);
 #endif
