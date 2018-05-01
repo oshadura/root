@@ -7,6 +7,7 @@ set(ZLIB_PUBLIC_HEADERS
     zlib.h
 )
 
+if((CMAKE_SYSTEM_PROCESSOR MATCHES "amd64|x86_64|AMD64|X86_64") AND (CMAKE_SYSTEM_NAME MATCHES "Linux"))
 set(ZLIB_PRIVATE_HEADERS
     crc32.h
     deflate.h
@@ -36,6 +37,37 @@ set(ZLIB_SOURCES
     uncompr.c
     zutil.c
 )
+else()
+set(ZLIB_PRIVATE_HEADERS
+    crc32.h
+    deflate_madler.h
+    gzguts.h
+    inffast.h
+    inffixed.h
+    inflate.h
+    inftrees.h
+    trees.h
+    zutil.h
+)
+
+set(ZLIB_SOURCES
+    adler32.c
+    compress.c
+    crc32.c
+    deflate_madler.c
+    gzclose.c
+    gzlib.c
+    gzread.c
+    gzwrite.c
+    inflate.c
+    infback.c
+    inftrees.c
+    inffast.c
+    trees_madler.c
+    uncompr.c
+    zutil.c
+)
+endif()
 
 unset(ZLIB_FOUND CACHE)
 unset(ZLIB_FOUND PARENT_SCOPE)
