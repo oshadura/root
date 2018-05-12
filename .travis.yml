@@ -3,14 +3,13 @@ sudo: false
 language: cpp
 
 os: linux
-      
 cache:
   apt: true
   ccache: true
 
 branches:
   only:
-    - kiryteo-rootbase-cmake
+    - cmake-dev
     - Travis*
 
 env:
@@ -48,27 +47,17 @@ matrix:
     - env: TOOL=minuit2-standalone
       script: cd math/minuit2 && .ci/make_and_test.sh
 
-
-    - env: TOOL=cmake-build
+    - env: TOOL=cmake
       addons:
         apt:
           sources: *sources
           packages:
             - cmake-data
             - cmake
-
-      script:
-        - |
-	  if [[ $TOOL == cmake ]]; then
-    	    mkdir $TRAVIS_BUILD_DIR/inst
-    	    mkdir ../builds
-    	    cd ../builds
-    	    cmake -DCMAKE_INSTALL_PREFIX:PATH=$TRAVIS_BUILD_DIR/inst -DCMAKE_CXX_STANDARD=14 -Dbuiltin_llvm=off ../travis-work
-    	    make
-    	    make DESTDIR=$TRAVIS_BUILD_DIR/inst install
-    	    cd -
-  	  fi
-
+      script: &cmake_script
+        - echo -en "travis_fold:start:cmake_build"
+        - .ci/cmake_script.sh
+        - echo -en 'travis_fold:end:cmake_build\\r'
 
   allow_failures:
     # clang-tidy-modernize is still experimental
@@ -77,16 +66,15 @@ matrix:
     - env: TOOL=clang-format
 
 before_deploy:
-- python $TRAVIS_BUILD/tarball.py $TRAVIS_BUILD_DIR/inst
-
+- python $TRAVIS_BUILD_DIR/tarball.py $TRAVIS_BUILD_DIR/installdir
 
 deploy:
   provider: releases
   api_key: "GITHUB OAUTH TOKEN"
-  file: "$TRAVIS_BUILD_DIR/inst.tar.gz"
+  file: "$TRAVIS_BUILD_DIR/rootbase.tar.gz"
   skip_cleanup: true
   on:
-    branch: kiryteo-rootbase-cmake
+    branch: cmake-dev
 
 # This will never run since there is not a clang-tidy only TOOL
 #  elif [[ "$TRAVIS_EVENT_TYPE" = "cron" ]] && [[ $TOOL == 'clang-tidy' ]]; then

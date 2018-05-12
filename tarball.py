@@ -10,4 +10,4 @@ def tardir(path, tar_name):
             for file in files:
                 tar_handle.add(os.path.join(root, file))
 
-tardir(arg, arg+'.tar.gz')
+tardir(arg, 'rootbase.tar.gz')
