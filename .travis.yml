@@ -3,9 +3,20 @@ sudo: false
 language: cpp
 
 os: linux
+
+addons: &addons
+  apt:
+    update: true
+    sources: &sources
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-precise-3.9
+#      - kalakris-cmake
+
 cache:
   apt: true
   ccache: true
+  directories:
+  - ../builds
 
 branches:
   only:
@@ -47,17 +58,15 @@ matrix:
     - env: TOOL=minuit2-standalone
       script: cd math/minuit2 && .ci/make_and_test.sh
 
-    - env: TOOL=cmake
+    - env: CXX=g++-6 CC=gcc BUILD_TYPE=Release
+      compiler: gcc
       addons:
         apt:
+          update: true
           sources: *sources
-          packages:
-            - cmake-data
-            - cmake
+          packages: [*common_deps, 'g++-6', 'g++-6-multilib', 'libc6-dbg', 'cmake', 'cmake-data']
       script: &cmake_script
-        - echo -en "travis_fold:start:cmake_build"
         - .ci/cmake_script.sh
-        - echo -en 'travis_fold:end:cmake_build\\r'
 
   allow_failures:
     # clang-tidy-modernize is still experimental
@@ -70,11 +79,16 @@ before_deploy:
 
 deploy:
   provider: releases
-  api_key: "GITHUB OAUTH TOKEN"
-  file: "$TRAVIS_BUILD_DIR/rootbase.tar.gz"
+  api_key:
+    secure: XiJFnoQZrvLOsSmctRQV46zBHXwtw79PlebQQ4mOvwAXtsBneO9IsJVpQZRfHrbrHLUMEvnpLLNg40l2M3P7jyBm0pgImOgC2TXBowEFaCXmreC3P8abxjqcYK9Nlyynu3W3sjAIfs7WE8cCDEarJ3Vybi4LlBHsUVNSmRHzV1ngWJ/5La8rpOpz/8VrbWXh/VXzY5wHiitwxJavsOs3m4lLQBK/fQKsB5wbkgW+hyE9+i9m3u0Yc9wjhaf8vqZG3ojcnFoCy9fcaSnZ+izmnswW1Y4992aaoKYNkrhGH90rvpnmQbvyKDL8I0g9o5Gxy+GYzF0onaSNT4CP2UVi8IW+l5YDSNcby6tHrzcyGREPWKnc1/mdqU2BCwFXRhZuOAlBz5G64a/tFn4dy4InsbLJ9fZ/0WGDBDGnzSNUuvR2QNkR7402NM+PBtWzU78ngVL91opI0YNYhPXlH5PseKqVtjnaZgYPa8OjoSadSSAlxsLsN9RBx8ZHnxK0oe65/wiwkTENEmRTcZDaTogGS3dhuo3H7Z9sbzkuAFlNy7raYX7GShB6jPuuHZ4HK7JDS+e5MoihqUY3Qw3YB1ACa0zZzleWxzEyhGhqdlWvOnqfWvOCPRPukOr/J+DtobPEnzAJx3rP7FbjYkn9wd2DmJ/zkwvN3JkpNNl0kRC4RDg=
+  file: $TRAVIS_BUILD_DIR/rootbase.tar.gz
   skip_cleanup: true
   on:
     branch: cmake-dev
+
+before_cache:
+  - find . -type f -printf "%T+\t%p\n" | sort | cut -f 2 > touch_order.txt
+  - cd "${TRAVIS_BUILD_DIR}" && git rev-parse HEAD > ../builds/previous_git_commit.txt
 
 # This will never run since there is not a clang-tidy only TOOL
 #  elif [[ "$TRAVIS_EVENT_TYPE" = "cron" ]] && [[ $TOOL == 'clang-tidy' ]]; then
