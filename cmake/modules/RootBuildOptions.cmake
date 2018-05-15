@@ -190,6 +190,7 @@ option(testing "Enable testing with CTest" OFF)
 option(roottest "Include roottest, if roottest exists in root or if it is a sibling directory." OFF)
 option(rootbench "Include rootbench, if rootbench exists in root or if it is a sibling directory." OFF)
 option(clingtest "Include cling tests. NOTE that this makes llvm/clang symbols visible in libCling." OFF)
+option(root-get "Package manager for ROOT - root-get" ON)
 
 if (runtime_cxxmodules)
   set(pch_defvalue OFF)
