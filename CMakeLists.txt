@@ -96,7 +96,7 @@ if (build_timing)
   # FIXME: This currently will override the use of ccache if -Dbuild_timing=On -Dccache=On is passed.
   set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
   set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "${CMAKE_COMMAND} -E time")
-  #set_property(GLOBAL PROPERTY RULE_LAUNCH_CUSTOM "${CMAKE_COMMAND} -E time") 
+  #set_property(GLOBAL PROPERTY RULE_LAUNCH_CUSTOM "${CMAKE_COMMAND} -E time")
 endif()
 
 #---Enable CTest package -----------------------------------------------------------------------
@@ -500,6 +500,35 @@ if(testing)
                       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
       add_subdirectory(rootbench)
     endif()
+  endif()
+endif()
+
+#---ROOT Package Manager-------------------------------------------------------------------------
+if(root-get)
+# Temporary development branch
+  set(GIT_BRANCH_ROOTGET "devel")
+  find_package(Git REQUIRED)
+  execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                    OUTPUT_VARIABLE GIT_BRANCH OUTPUT_STRIP_TRAILING_WHITESPACE)
+  #---Is the root-get source directory around?
+  if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/root-get)
+    set(rootgetdir ${CMAKE_CURRENT_SOURCE_DIR}/root-get)
+  else()
+    # Need to break into two steps in case the source dir is a symlink
+    get_filename_component(_source_dir ${CMAKE_CURRENT_SOURCE_DIR} REALPATH)
+    set(rootgetdir ${_source_dir}/../root-get)
+  endif()
+
+  message(STATUS "ROOT Package Manager: " ${rootgetdir})
+
+  if(IS_DIRECTORY ${rootgetdir})
+    file(REMOVE_RECURSE ${CMAKE_CURRENT_BINARY_DIR}/root-get)
+  else()
+    message("-- Could not find root-get directory! Cloning from the repository...")
+    execute_process(COMMAND ${GIT_EXECUTABLE} clone -b ${GIT_BRANCH_ROOTGET}
+                      https://github.com/oshadura/root-get.git
+                      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
   endif()
 endif()
 
