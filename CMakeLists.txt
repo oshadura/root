@@ -501,5 +501,35 @@ if(testing)
   endif()
 endif()
 
+#---ROOT Package Manager-------------------------------------------------------------------------
+if(root-get)
+  find_package(Git REQUIRED)
+  execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                    OUTPUT_VARIABLE GIT_BRANCH OUTPUT_STRIP_TRAILING_WHITESPACE)
+  #---Is the root-get source directory around?
+  if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/root-get)
+    set(rootgetdir ${CMAKE_CURRENT_SOURCE_DIR}/root-get)
+  else()
+    # Need to break into two steps in case the source dir is a symlink
+    get_filename_component(_source_dir ${CMAKE_CURRENT_SOURCE_DIR} REALPATH)
+    set(rootgetdir ${_source_dir}/../root-get)
+  endif()
+
+  message(STATUS "ROOT Package Manager: " ${rootgetdir})
+
+  if(IS_DIRECTORY ${rootgetdir})
+    file(REMOVE_RECURSE ${CMAKE_CURRENT_BINARY_DIR}/root-get)
+#    add_subdirectory(${rootgetdir} root-get)
+  else()
+    message("-- Could not find root-get directory! Cloning from the repository...")
+    set(${GIT_BRANCH_ROOTGET} "teemperor-first-prototype")
+    execute_process(COMMAND ${GIT_EXECUTABLE} clone -b ${GIT_BRANCH_ROOTGET}
+                      https://github.com/oshadura/root-get.git
+                      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+#    add_subdirectory(root-get)
+  endif()
+endif()
+
 #---Packaging-------------------------------------------------------------------------------------
 include(RootCPack)
