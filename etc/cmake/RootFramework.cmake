@@ -141,3 +141,4 @@ function(ROOT_STANDARD_LIBRARY_PACKAGE libname)
   install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/dependencies" DESTINATION "${INSTALL_DIR}")
   install(DIRECTORY inc DESTINATION "${INSTALL_DIR}")
 endfunction()
+
