@@ -60,13 +60,15 @@ set(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "")
 set(ZLIB_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "")
 
 add_library(ZLIB STATIC ${ZLIB_PUBLIC_HEADERS} ${ZLIB_PRIVATE_HEADERS} ${ZLIB_SOURCES} ${ZLIB_ASMS})
-target_include_directories(ZLIB INTERFACE $<BUILD_INTERFACE:${ZLIB_INCLUDE_DIR}>)
+target_include_directories(ZLIB INTERFACE $<BUILD_INTERFACE:${ZLIB_INCLUDE_DIR}> $<BUILD_INTERFACE:${ZLIB_INCLUDE_DIR}>)
+target_link_libraries(ZLIB crc32c)
 
 if((CMAKE_SYSTEM_PROCESSOR MATCHES "amd64|x86_64|AMD64|X86_64") AND (CMAKE_SYSTEM_NAME MATCHES "Linux"))
     target_compile_options(ZLIB PRIVATE -fvisibility=hidden -Wno-unused-function -O3 -mpclmul ${ROOT_DEFINITIONS})
 else()
     target_compile_options(ZLIB PRIVATE -fvisibility=hidden -O3)
 endif()
+
 
 add_library(ZLIB::ZLIB ALIAS ZLIB)
 
