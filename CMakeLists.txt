@@ -95,7 +95,7 @@ if (build_timing)
   # FIXME: This currently will override the use of ccache if -Dbuild_timing=On -Dccache=On is passed.
   set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
   set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "${CMAKE_COMMAND} -E time")
-  #set_property(GLOBAL PROPERTY RULE_LAUNCH_CUSTOM "${CMAKE_COMMAND} -E time") 
+  #set_property(GLOBAL PROPERTY RULE_LAUNCH_CUSTOM "${CMAKE_COMMAND} -E time")
 endif()
 
 #---Enable CTest package -----------------------------------------------------------------------
@@ -503,6 +503,8 @@ endif()
 
 #---ROOT Package Manager-------------------------------------------------------------------------
 if(root-get)
+# Temporary development branch
+  set(GIT_BRANCH_ROOTGET "devel")
   find_package(Git REQUIRED)
   execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
                     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -520,14 +522,11 @@ if(root-get)
 
   if(IS_DIRECTORY ${rootgetdir})
     file(REMOVE_RECURSE ${CMAKE_CURRENT_BINARY_DIR}/root-get)
-#    add_subdirectory(${rootgetdir} root-get)
   else()
     message("-- Could not find root-get directory! Cloning from the repository...")
-    set(${GIT_BRANCH_ROOTGET} "teemperor-first-prototype")
     execute_process(COMMAND ${GIT_EXECUTABLE} clone -b ${GIT_BRANCH_ROOTGET}
                       https://github.com/oshadura/root-get.git
                       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-#    add_subdirectory(root-get)
   endif()
 endif()
 
