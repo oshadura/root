@@ -116,7 +116,7 @@ function(ROOT_GENERATE_DICTIONARY dictionary)
   set(headerfiles)
   foreach(fp ${ARG_UNPARSED_ARGUMENTS})
     if(${fp} MATCHES "[*?]") # Is this header a globbing expression?
-      file(GLOB files ${fp})
+      file(GLOB_RECURSE files ${fp} inc/${fp})
       foreach(f ${files})
         if(NOT f MATCHES LinkDef) # skip LinkDefs from globbing result
           set(headerfiles ${headerfiles} ${f})
@@ -138,6 +138,7 @@ function(ROOT_GENERATE_DICTIONARY dictionary)
   #---call rootcling------------------------------------------
   add_custom_command(OUTPUT ${dictionary}.cxx
                      COMMAND ${ROOTCLING_EXECUTABLE} -f ${dictionary}.cxx
+                                          -rmf ${dictionary}.rootmap
                                           -c ${ARG_OPTIONS} ${includedirs} ${headerfiles} ${linkdefs}
                      DEPENDS ${headerfiles} ${linkdefs} VERBATIM)
 endfunction()
@@ -200,4 +201,3 @@ function(REFLEX_GENERATE_DICTIONARY dictionary)
                              --gccxmlpath=${gccxmlpath} ${ARG_OPTIONS} ${includedirs} ${definitions}
                      DEPENDS ${headerfiles} ${selectionfile})
 endfunction()
-
