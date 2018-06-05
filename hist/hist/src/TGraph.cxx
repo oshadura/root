@@ -19,7 +19,6 @@
 #include "TF1.h"
 #include "TStyle.h"
 #include "TMath.h"
-#include "TFrame.h"
 #include "TVector.h"
 #include "TVectorD.h"
 #include "Foption.h"

@@ -40,7 +40,6 @@
 #include "TGraphErrors.h"
 #include "TF1.h"
 #include "TH1.h"
-#include "TCanvas.h"
 #include "TKDE.h"
 
 
@@ -799,9 +798,10 @@ void TKDE::Draw(const Option_t* opt) {
    TString plotOpt = opt;
    plotOpt.ToLower();
    TString drawOpt = plotOpt;
-   if(gPad && !plotOpt.Contains("same")) {
-      gPad->Clear();
-   }
+   // FIXME: Dead code that was creating a circular dependency [Hist->Gpad->Hist]
+   //if(gPad && !plotOpt.Contains("same")) {
+   //   gPad->Clear();
+   //}
    if (plotOpt.Contains("errors"))  {
       drawOpt.ReplaceAll("errors","");
       DrawErrors(drawOpt);

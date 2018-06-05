@@ -35,7 +35,6 @@
 #include "TCanvas.h"
 #include "TPad.h"
 #include "TPaveStats.h"
-#include "TFrame.h"
 #include "TLatex.h"
 #include "TLine.h"
 #include "TPolyLine.h"

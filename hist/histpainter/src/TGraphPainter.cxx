@@ -28,8 +28,6 @@
 #include "TGraphPolar.h"
 #include "TGraphQQ.h"
 #include "TLatex.h"
-#include "TArrow.h"
-#include "TFrame.h"
 #include "TMarker.h"
 #include "TVirtualPadEditor.h"
 
