@@ -956,6 +956,50 @@ function(ROOT_STANDARD_LIBRARY_PACKAGE libname)
     set(MODULE_GEN_ARG)
   endif()
 
+  list(APPEND dlist "")
+  list(APPEND srclist "")
+  list(APPEND hdrlist "")
+
+  foreach(f ${ARG_DEPENDENCIES})
+    list(APPEND dlist ${f} )
+    list(APPEND dlist " ")
+  endforeach()
+
+  foreach(f ${ARG_SOURCES})
+    list(APPEND srclist ${f} )
+    list(APPEND srclist " ")
+  endforeach()
+
+  foreach(f ${ARG_HEADERS})
+    list(APPEND hdrlist ${f} )
+    list(APPEND hdrlist " ")
+  endforeach()
+
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/module.yml" "module: \n  name:  " ${libname}\n)
+  
+  string(TOLOWER ${libname} pkgname)
+  file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/module.yml" "  packageurl: "\"https://github.com/root-project/${pkgname}\"\n)
+  file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/module.yml" "  tag: 0.0.0"\n)
+  file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/module.yml" "  path: "${CMAKE_CURRENT_BINARY_DIR}\n)
+  file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/module.yml" "  publicheaders: "${hdrlist}\n)
+  file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/module.yml" "  sources: ${srclist}"\n)
+  file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/module.yml" "  targets: "${libname}\n)
+  file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/module.yml" "  deps: "${dlist}\n)
+
+  get_filename_component(PARENT_DIR ${CMAKE_CURRENT_BINARY_DIR} DIRECTORY)
+
+  file(APPEND ${PARENT_DIR}/package.yml "      module: \n")
+  file(APPEND ${PARENT_DIR}/package.yml "\tname: " ${libname})
+  file(APPEND "${PARENT_DIR}/package.yml" "\n")
+  string(TOLOWER ${libname} pkgname)
+  file(APPEND "${PARENT_DIR}/package.yml" "\tpackageurl: "\"https://github.com/root-project/${pkgname}\"\n)
+  file(APPEND "${PARENT_DIR}/package.yml" "\ttag: 0.0.0"\n)
+  file(APPEND "${PARENT_DIR}/package.yml" "\tpath: "${CMAKE_CURRENT_BINARY_DIR}\n)
+  file(APPEND "${PARENT_DIR}/package.yml" "\tpublicheaders: "${hdrlist}\n)
+  file(APPEND "${PARENT_DIR}/package.yml" "\tsources: ${srclist}"\n)
+  file(APPEND "${PARENT_DIR}/package.yml" "\ttargets: "${libname}\n)
+  file(APPEND "${PARENT_DIR}/package.yml" "\tdeps: "${dlist}\n)
+
   ROOT_GENERATE_DICTIONARY(G__${libname} ${ARG_HEADERS}
                           ${MODULE_GEN_ARG}
                           ${STAGE1_FLAG}
@@ -1520,6 +1564,17 @@ macro(add_root_subdirectory name)
   else()
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${name} ${name})
   endif()
+
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/package.yml" "package: \n    name: " \"${name}\" \n )
+  file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/package.yml" "    packageurl: "\"https://github.com/root-project/${name}\"\n)
+  file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/package.yml" "    tag: 0.0.0"\n)
+  file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/package.yml" "    targets:\n")
+  file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/package.yml" "      target:\n")
+  file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/package.yml" "\tname: \"${name}\"\n")
+  file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/package.yml" "    products:\n")
+  file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/package.yml" "      package:\n")
+  file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/package.yml" "\tname: ${name}\n")
+
 endmacro()
 
 #----------------------------------------------------------------------------
