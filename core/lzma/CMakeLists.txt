@@ -11,7 +11,7 @@ set(headers ${CMAKE_CURRENT_SOURCE_DIR}/inc/ZipLZMA.h)
 set(sources ${CMAKE_CURRENT_SOURCE_DIR}/src/ZipLZMA.c)
 
 
-include_directories(${LZMA_INCLUDE_DIR})
+include_directories(${LIBLZMA_INCLUDE_DIR})
 ROOT_OBJECT_LIBRARY(Lzma ${sources} BUILTINS LZMA)
 
 ROOT_INSTALL_HEADERS()
