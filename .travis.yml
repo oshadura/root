@@ -10,18 +10,16 @@ addons: &addons
     sources: &sources
       - ubuntu-toolchain-r-test
       - llvm-toolchain-precise-3.9
-#      - kalakris-cmake
 
 cache:
   apt: true
   ccache: true
   directories:
-  - ../builds
+  - $TRAVIS_BUILD_DIR/builds
 
 branches:
   only:
-    - cmake-dev
-    - Travis*
+    - root-modularization-devel-gsoc18
 
 env:
 
@@ -80,15 +78,15 @@ before_deploy:
 deploy:
   provider: releases
   api_key:
-    secure: XiJFnoQZrvLOsSmctRQV46zBHXwtw79PlebQQ4mOvwAXtsBneO9IsJVpQZRfHrbrHLUMEvnpLLNg40l2M3P7jyBm0pgImOgC2TXBowEFaCXmreC3P8abxjqcYK9Nlyynu3W3sjAIfs7WE8cCDEarJ3Vybi4LlBHsUVNSmRHzV1ngWJ/5La8rpOpz/8VrbWXh/VXzY5wHiitwxJavsOs3m4lLQBK/fQKsB5wbkgW+hyE9+i9m3u0Yc9wjhaf8vqZG3ojcnFoCy9fcaSnZ+izmnswW1Y4992aaoKYNkrhGH90rvpnmQbvyKDL8I0g9o5Gxy+GYzF0onaSNT4CP2UVi8IW+l5YDSNcby6tHrzcyGREPWKnc1/mdqU2BCwFXRhZuOAlBz5G64a/tFn4dy4InsbLJ9fZ/0WGDBDGnzSNUuvR2QNkR7402NM+PBtWzU78ngVL91opI0YNYhPXlH5PseKqVtjnaZgYPa8OjoSadSSAlxsLsN9RBx8ZHnxK0oe65/wiwkTENEmRTcZDaTogGS3dhuo3H7Z9sbzkuAFlNy7raYX7GShB6jPuuHZ4HK7JDS+e5MoihqUY3Qw3YB1ACa0zZzleWxzEyhGhqdlWvOnqfWvOCPRPukOr/J+DtobPEnzAJx3rP7FbjYkn9wd2DmJ/zkwvN3JkpNNl0kRC4RDg=
+    secure: BfLoQf1MXV0sK23zbE7xRWH3nlmQIgmzHXsrUROQTGcSmJU2DJSlb2QeLJnLhoelD12Vg1nRxZL8a53EFkX40/luskIsETEx6ElczFu3H8vk1T9OV9nHXbSZX8ZksytcPf6618rd3Z3yQfv8OrEMP+t0IBCKZd5oXunULRg5VI1c0uI0OgpE0sRASLcMt2vaRON79SJKecFAdvAf0XHokQXSUX4tw1y6JiIlFFXApXaBd5u/V8scAal7RjacT6GNAdwiyHB3ert+d1XDp5jVym4KM/XPY+rCkGpoT5gAzwb8RP42ZjCv2Hm4gQ+Ph+ujqMqViD8NATXslhmQXdrQNfQtSoCdHeVjupKkzmzl+pirnMlPnBPO/dReRa+bMkSdtk9uw18eJZP3l8OqtuVTns1FawHvw8vKDJrf351kAgTSJH7VohfPNFNUk3MWZrlakfAPHzOZI/1QIUUbKnkD2gTqzm7RtbA5NuEJpXXpchG/a2U1/u9624ceasMzNGHmnBnzBEJUhM5RbdxE0LjfdBksfVLZkROJmTHYCKv5BbDM4lw0VCml7eKyLL9rmMU1Fld9vtMYggI9Mz9aANDGhBotzM3w8Cr79rSCuVvCGZINIu6PTvGLp97TYdlr2O5EP/erd+uwcXgcVbgcV7R+N7nxdQADpdkZxMmYm4PdIU8=
   file: $TRAVIS_BUILD_DIR/rootbase.tar.gz
   skip_cleanup: true
   on:
-    branch: cmake-dev
+    branch: root-modularization-devel-gsoc18
 
 before_cache:
   - find . -type f -printf "%T+\t%p\n" | sort | cut -f 2 > touch_order.txt
-  - cd "${TRAVIS_BUILD_DIR}" && git rev-parse HEAD > ../builds/previous_git_commit.txt
+  - cd $TRAVIS_BUILD_DIR && git rev-parse HEAD > $TRAVIS_BUILD_DIR/builds/previous_git_commit.txt
 
 # This will never run since there is not a clang-tidy only TOOL
 #  elif [[ "$TRAVIS_EVENT_TYPE" = "cron" ]] && [[ $TOOL == 'clang-tidy' ]]; then
