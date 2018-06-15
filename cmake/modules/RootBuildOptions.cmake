@@ -328,7 +328,7 @@ endforeach()
 if(root-modularization)
   foreach(opt ${root_build_options})
     # builtin_llvm|builtin_clang - we will use external LLVM and clang
-    if(NOT opt MATCHES "cling|explicitlink")
+    if(NOT opt MATCHES "cling|builtin_clang|explicitlink")
       set(${opt}_defvalue OFF)
     endif()
   endforeach()
