@@ -4,7 +4,8 @@ set -ex
 
 #creating installation directory
 mkdir ${TRAVIS_BUILD_DIR}/installdir
-cd ${TRAVIS_BUILD_DIR}/builds
+mkdir -p ../builds
+cd ../builds
 if [[ -f touch_order.txt ]]; then
   while read fn; do
     touch $fn
@@ -17,7 +18,7 @@ if [[ -f touch_order.txt ]]; then
   echo $changed_files
   cd ${TRAVIS_BUILD_DIR}
   touch `echo $changed_files`
-  cd ${TRAVIS_BUILD_DIR}/builds
+  cd ${TRAVIS_BUILD_DIR}/../builds
 else
   cmake -DCMAKE_C_COMPILER=/usr/bin/gcc-6 -DCMAKE_CXX_COMPILER=/usr/bin/g++-6 -DCMAKE_CXX_STANDARD="14" -DCMAKE_INSTALL_PREFIX="${TRAVIS_BUILD_DIR}/installdir" -Dbuiltin_llvm="OFF" ../root
 fi

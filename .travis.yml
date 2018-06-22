@@ -15,7 +15,7 @@ cache:
   apt: true
   ccache: true
   directories:
-  - $TRAVIS_BUILD_DIR/builds
+  - ../builds
 
 branches:
   only:
