@@ -20,7 +20,7 @@ if [[ -f touch_order.txt ]]; then
   touch `echo $changed_files`
   cd ${TRAVIS_BUILD_DIR}/../builds
 else
-  cmake -DCMAKE_C_COMPILER=/usr/bin/gcc-6 -DCMAKE_CXX_COMPILER=/usr/bin/g++-6 -DCMAKE_CXX_STANDARD="14" -DCMAKE_INSTALL_PREFIX="${TRAVIS_BUILD_DIR}/installdir" -Dbuiltin_llvm="OFF" ../root
+  cmake -DCMAKE_C_COMPILER=gcc-6 -DCMAKE_CXX_COMPILER=g++-6 -DCMAKE_CXX_STANDARD="14" -DCMAKE_INSTALL_PREFIX="${TRAVIS_BUILD_DIR}/installdir" -Dbuiltin_llvm="OFF" ../root
 fi
 #currently root compiles with GCC-6
 make -j4
