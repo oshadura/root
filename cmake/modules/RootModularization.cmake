@@ -1,18 +1,16 @@
 #---------------------------------------------------------------------------------------------------
 #  RootModularization.cmake
 #---------------------------------------------------------------------------------------------------
-#include(RootModuleMap)
-include(RootVariables)
+include(RootPackageMap)
 #---------------------------------------------------------------------------------------------------
 set(root_modules)
 set(root_packages)
 SET_PROPERTY(GLOBAL PROPERTY root_modules "")
 SET_PROPERTY(GLOBAL PROPERTY root_packages "")
 #---------------------------------------------------------------------------------------------------
-#---ROOT_MODULARIZATION_PACKAGE(name defvalue [description] )
-#---Now is avaibale only for ALL & BASE
+#---ADD_ROOT_PACKAGE_BUILD_OPTION(name defvalue [description] )
 #---------------------------------------------------------------------------------------------------
-function(ROOT_MODULARIZATION_PACKAGE build defvalue)
+function(ADD_ROOT_PACKAGE_BUILD_OPTION package value description)
   if(ARGN)
     set(description ${ARGN})
   else()
@@ -24,6 +22,13 @@ function(ROOT_MODULARIZATION_PACKAGE build defvalue)
   if(${defvalue})
   	message(STATUS ${description})
   endif()
+endfunction()
+
+#---------------------------------------------------------------------------------------------------
+#---ENABLE_ROOT_PACKAGE_BUILD_OPTION(package)
+#---------------------------------------------------------------------------------------------------
+function(ENABLE_ROOT_PACKAGE_BUILD_OPTION ${package})
+   set(${package} ON CACHE BOOL "" FORCE)
 endfunction()
 
 #---------------------------------------------------------------------------------------------------
@@ -53,10 +58,9 @@ function(ROOT_SHOW_PACKAGES)
 endfunction()
 
 #---------------------------------------------------------------------------------------------------
-#---ListToString([var] )
+#---LIST_TO_STRING(result delim)
 #---------------------------------------------------------------------------------------------------
-
-function (ListToString result delim)
+function(LIST_TO_STRING result delim)
     list(GET ARGV 2 temp)
     math(EXPR N "${ARGC}-1")
     foreach(IDX RANGE 3 ${N})
@@ -64,16 +68,27 @@ function (ListToString result delim)
         set(temp "${temp}${delim}${STR}")
     endforeach()
     set(${result} "${temp}" PARENT_SCOPE)
-endfunction(ListToString)
+endfunction(LIST_TO_STRING)
 
 #---------------------------------------------------------------------------------------------------
-#---ROOT_SHOW_MODULES([var] )
+#---ROOT_SHOW_PACKAGES()
 #---------------------------------------------------------------------------------------------------
-function(ROOT_SHOW_MODULES)
-  ListToString(roomodules ", " ${root_modules})
-  message(STATUS "${roomodules}")
+function(ROOT_SHOW_PACKAGES)
+  LIST_TO_STRING(rpackages ", " ${root_packages})
+  message(STATUS "${rpackages}")
 endfunction()
 
+#---------------------------------------------------------------------------------------------------
+#---ROOT_SHOW_MODULES()
+#---------------------------------------------------------------------------------------------------
+function(ROOT_SHOW_MODULES)
+  LIST_TO_STRING(rmodules ", " ${root_modules})
+  message(STATUS "${rmodules}")
+endfunction()
+
+###################################################################################################
+###################### Functionality form ROOT add_root_directory() ###############################
+###################################################################################################
 #---------------------------------------------------------------------------------------------------
 #---ROOT_GET_PACKAGE([var])
 #---------------------------------------------------------------------------------------------------
@@ -132,12 +147,22 @@ function(ROOT_PARSE_TUPLE_VALUES list_name name_of_module return_package)
  set(${return_package} ${return_package_output} PARENT_SCOPE)
 endfunction()
 
-#-----------------------------------------------------------------------------------------------------
-# Generator of yaml files for ROOT_STANDARD_LIBRARY_PACKAGE(X DEPENDENCIES x)
-#-----------------------------------------------------------------------------------------------------
-#-----------------------------------------------------------------------------------------------------
-#FIXME: to add better option's management
-ROOT_MODULARIZATION_PACKAGE(BASE ON "Building ROOT Base module")
-if(root-full-build)
-  ROOT_MODULARIZATION_PACKAGE(ALL ON "Building ROOT Base module")
-endif()
+###################################################################################################
+###################################################################################################
+###################################################################################################
+function(ENABLE_PACKAGES_FROM_MAP)
+   foreach(value IN LISTS rootpackagemap_requested)
+      if(ARGN)
+         set(description ${ARGN})
+      else()
+         set(description " ")
+      endif()
+      set(${value}_defvalue ON CACHE BOOL "" FORCE PARENT_SCOPE)
+      set(${value}_description ${description} PARENT_SCOPE)
+      set(root_packages  ${root_packages} ${value} PARENT_SCOPE)
+      if(${defvalue})
+         message(STATUS ${description})
+      endif()
+      option(${value} "" ${${value}_defvalue}  PARENT_SCOPE)
+   endforeach()
+endfunction()
