@@ -299,11 +299,6 @@ endif()
 ROOT_ADD_TEST_SUBDIRECTORY(test)
 ROOT_ADD_TEST_SUBDIRECTORY(tutorials)
 
-#---ROOT Modularization---------------------------------------------------------------------------
-#-----------------------------------------------------------------------------------------------------
-ROOT_APPLY_PACKAGES()
-ROOT_SHOW_PACKAGES()
-
 #---CXX MODULES-----------------------------------------------------------------------------------
 # Take all the modulemap contents we collected from the packages and append them to our modulemap.
 # We have to delay this because the ROOT_CXXMODULES_EXTRA_MODULEMAP_CONTENT is filled in the
