@@ -12,4 +12,5 @@ endif()
 
 ROOT_STANDARD_LIBRARY_PACKAGE(XMLParser
                               LIBRARIES ${LIBXML2_LIBRARIES}
+                              EXTERNAL_DEPENDENCIES libxml2
                               DEPENDENCIES Core)
