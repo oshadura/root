@@ -5,6 +5,8 @@ include(CheckCCompilerFlag)
 find_package(ROOT REQUIRED COMPONENTS RIO)
 include(${ROOT_USE_FILE})
 
+include(RootDependencies)
+
 get_directory_property(RootFramework_incdirs INCLUDE_DIRECTORIES)
 set_directory_properties(PROPERTIES INCLUDE_DIRECTORIES "${RootFramework_incdirs};${CMAKE_CURRENT_SOURCE_DIR}/inc;${ROOT_INCLUDE_DIR}")
 
@@ -42,20 +44,22 @@ endfunction()
 #                                 [NO_SOURCES]                 : don't glob to fill SOURCES variable
 #                                 [OBJECT_LIBRARY]             : use ROOT_OBJECT_LIBRARY to generate object files
 #                                                                and then use those for linking.
+#                                 EXTERNAL_DEPENDENCIES        : checking dependencies required to be found for package
 #                                 LIBRARIES lib1 lib2          : linking flags such as dl, readline
 #                                 DEPENDENCIES lib1 lib2       : dependencies such as Core, MathCore
 #                                 BUILTINS builtin1 builtin2   : builtins like AFTERIMAGE
 #                                 LINKDEF LinkDef.h LinkDef2.h : linkdef files, default value is "LinkDef.h"
 #                                 DICTIONARY_OPTIONS option    : options passed to rootcling
 #                                 INSTALL_OPTIONS option       : options passed to install headers
+#                                 NO_MODULE                    : don't generate a C++ module for this package
 #                                )
 #---------------------------------------------------------------------------------------------------
 function(ROOT_STANDARD_LIBRARY_PACKAGE libname)
   project(${libname})
 
-  set(options NO_INSTALL_HEADERS STAGE1 NO_HEADERS NO_SOURCES OBJECT_LIBRARY)
+  set(options NO_INSTALL_HEADERS STAGE1 NO_HEADERS NO_SOURCES OBJECT_LIBRARY NO_MODULE)
   set(oneValueArgs)
-  set(multiValueArgs DEPENDENCIES HEADERS SOURCES BUILTINS LIBRARIES DICTIONARY_OPTIONS LINKDEF INSTALL_OPTIONS)
+  set(multiValueArgs DEPENDENCIES HEADERS SOURCES BUILTINS LIBRARIES DICTIONARY_OPTIONS LINKDEF INSTALL_OPTIONS EXTERNAL_DEPENDENCIES)
   CMAKE_PARSE_ARGUMENTS(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
   # Check if we have any unparsed arguments
@@ -97,58 +101,89 @@ function(ROOT_STANDARD_LIBRARY_PACKAGE libname)
   endforeach()
   set(ARG_SOURCES "${NEW_SOURCES}")
 
-  list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
+  # Don't pass the MODULE arg to ROOT_GENERATE_DICTIONARY when
+  # NO_MODULE is set.
+  set(MODULE_GEN_ARG MODULE ${libname})
+  if(ARG_NO_MODULE)
+    set(MODULE_GEN_ARG)
+  endif()
 
-  list(APPEND dlist "")
-  list(APPEND srclist "")
-  list(APPEND hdrlist "")
+   list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
+# FIXME: very temporary solution..
+   if(ARG_EXTERNAL_DEPENDENCIES)
+     call(find_package_${ARG_EXTERNAL_DEPENDENCIES})
+     string(TOUPPER "${ARG_EXTERNAL_DEPENDENCIES}" EXTERNAL_DEPENDENCY)
+     set(EXTERNAL_FOUND "${EXTERNAL_DEPENDENCY}_FOUND")
+     set(EXTERNAL_DEPENDENCIES_INCLUDES "${EXTERNAL_DEPENDENCY}_INCLUDE_DIR")
+     #message(STATUS ${EXTERNAL_DEPENDENCIES_INCLUDES})
+     set(EXTERNAL_DEFINITIONS "${EXTERNAL_DEPENDENCY}_DEFINITIONS}")
+     if(NOT ${${EXTERNAL_FOUND}})
+       message(FATAL_ERROR "Please try to install ${ARG_EXTERNAL_DEPENDENCIES}, we couldn't find using Find${ARG_EXTERNAL_DEPENDENCIES}.cmake
+                           we expect to find ${EXTERNAL_FOUND}, ${EXTERNAL_DEPENDENCIES_INCLUDES} and ${EXTERNAL_DEFINITIONS}")
+     endif()
+     include_directories(${${EXTERNAL_DEPENDENCIES_INCLUDES}})
+     add_definitions(${${EXTERNAL_DEFINITIONS}})
+   endif()
+
+  set(dlist "")
+  set(srclist "")
+  set(hdrlist "")
 
   foreach(f ${ARG_DEPENDENCIES})
     list(APPEND dlist ${f})
   endforeach()
 
-  if(ARG_SOURCES)
-    foreach(f ${ARG_SOURCES})
-      list(APPEND srclist ${f})
-    endforeach()
-  elseif(ARG_NO_SOURCES)
-     list(APPEND srclist "no_sources")
-  else()
-     list(APPEND srclist "src/*.cxx")
-  endif()
+if(ARG_SOURCES)
+  foreach(f ${ARG_SOURCES})
+    list(APPEND srclist ${f})
+  endforeach()
+elseif((NOT ARG_SOURCES) AND (NOT ARG_NO_SOURCES))
+   return()
+# if only one option ARG_NO_SOURCES
+elseif(ARG_NO_SOURCES)
+   unset(srclist)
+   list(APPEND srclist "no_sources")
+else()
+   unset(srclist)
+   list(APPEND srclist "*.cxx")
+endif()
 
-  if(ARG_HEADERS)
-    foreach(f ${ARG_HEADERS})
-      list(APPEND hdrlist ${f})
-    endforeach()
-  elseif(ARG_NO_HEADERS)
-    list(APPEND hdrlist "no_headers")
-  else()
-    list(APPEND hdrlist "*.h")
-  endif()
-
-  message(STATUS "Dependencies: " ${dlist})
-  message(STATUS "Sources: " ${srclist})
-  message(STATUS "Headers: " ${hdrlist})
-
-  # We consider that we always have root-modularization ON (building outside of ROOT sources)
-  generate_module_manifest(${libname} ${dlist} ${srclist} ${hdrlist})
+if(ARG_HEADERS)
+  foreach(f ${ARG_HEADERS})
+    list(APPEND hdrlist ${f})
+  endforeach()
+elseif((NOT ARG_HEADERS) AND (NOT ARG_NO_HEADERS))
+   return()
+# if only one option ARG_NO_HEADERS
+elseif(ARG_NO_HEADERS)
+  unset(hdrlist)
+  list(APPEND hdrlist "no_headers")
+else()
+  unset(hdrlist)
+  list(APPEND hdrlist "*.h")
+endif()
 
   list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
-
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/inc" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
   set(dep_include_dirs)
   set(PKG_PATH "$ENV{ROOT_PKG_PATH}")
   list(REMOVE_ITEM ARG_DEPENDENCIES Core RIO)
-  foreach(DEP ${ARG_DEPENDENCIES})
-    include("${PKG_PATH}/${DEP}/${DEP}.cmake")
-    get_property(new_dep_include_dirs TARGET ${DEP}_${DEP} PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
-    list(APPEND dep_include_dirs "${new_dep_include_dirs}")
-    get_directory_property(RootFramework_incdirs INCLUDE_DIRECTORIES)
-    set_directory_properties(PROPERTIES INCLUDE_DIRECTORIES "${RootFramework_incdirs};${new_dep_include_dirs}")
-  endforeach()
 
+  # We consider that we always have root-modularization ON (building outside of ROOT sources)
+ generate_module_manifest(${libname} "${dlist}" "${srclist}" "${hdrlist}")
+
+  foreach(DEP ${ARG_DEPENDENCIES})
+    if(EXISTS ${PKG_PATH}/${DEP}/${DEP}.cmake)
+      include("${PKG_PATH}/${DEP}/${DEP}.cmake")
+      get_property(new_dep_include_dirs TARGET ${DEP}_${DEP} PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
+      list(APPEND dep_include_dirs "${new_dep_include_dirs}")
+      get_directory_property(RootFramework_incdirs INCLUDE_DIRECTORIES)
+      set_directory_properties(PROPERTIES INCLUDE_DIRECTORIES "${RootFramework_incdirs};${new_dep_include_dirs}")
+   else()
+      return()
+   endif()
+  endforeach()
 
   ROOT_GENERATE_DICTIONARY(${libname} ${ARG_HEADERS}
 #                          MODULE ${libname}
@@ -162,7 +197,6 @@ function(ROOT_STANDARD_LIBRARY_PACKAGE libname)
   foreach(DEP ${ARG_DEPENDENCIES})
     target_link_libraries(${libname} "${PKG_PATH}/${DEP}/lib${DEP}.so")
   endforeach()
-
 
   file(WRITE dependencies "${ARG_DEPENDENCIES}")
 
@@ -178,49 +212,50 @@ function(ROOT_STANDARD_LIBRARY_PACKAGE libname)
 endfunction()
 
 macro(generate_module_manifest libname dlist srclist hdrlist)
-  list(APPEND dlist_pretty_print "")
-  list(APPEND srclist_pretty_print "")
-  list(APPEND hdrlist_pretty_print "")
+  set(dlist_pretty_print "")
+  set(srclist_pretty_print "")
+  set(hdrlist_pretty_print "")
 
   foreach(f ${dlist})
-    list(APPEND dlist_pretty_print ${f} )
-    #list(APPEND dlist_pretty_print " ")
+    list(APPEND dlist_pretty_print ${f})
+    list(APPEND dlist_pretty_print " ")
   endforeach()
 
   foreach(f ${srclist})
-    list(APPEND srclist_pretty_print ${f} )
-  #  list(APPEND srclist_pretty_print " ")
+    list(APPEND srclist_pretty_print ${f})
+    list(APPEND srclist_pretty_print " ")
   endforeach()
 
   foreach(f ${hdrlist})
-    list(APPEND srclist_pretty_print ${f})
-    #list(APPEND srclist_pretty_print " ")
+    list(APPEND hdrlist_pretty_print ${f})
+    list(APPEND srclist_pretty_print " ")
   endforeach()
   string(TOLOWER ${libname} pkgname)
-  file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/module.yml" "module: \n  name:  " ${libname}\n)
-  file(APPEND "${CMAKE_CURRENT_SOURCE_DIR}/module.yml" "  packageurl: " \"https://github.com/root-project/${pkgname}\"\n)
-  file(APPEND "${CMAKE_CURRENT_SOURCE_DIR}/module.yml" "  tag: 0.0.0 " \n)
-  file(APPEND "${CMAKE_CURRENT_SOURCE_DIR}/module.yml" "  path: " ${CMAKE_CURRENT_SOURCE_DIR}\n)
-  file(APPEND "${CMAKE_CURRENT_SOURCE_DIR}/module.yml" "  publicheaders: " ${hdrlist_pretty_print}\n)
-  file(APPEND "${CMAKE_CURRENT_SOURCE_DIR}/module.yml" "  sources: ${srclist_pretty_print}" \n)
-  file(APPEND "${CMAKE_CURRENT_SOURCE_DIR}/module.yml" "  targets: " ${libname}\n)
-  file(APPEND "${CMAKE_CURRENT_SOURCE_DIR}/module.yml" "  deps: " ${dlist_pretty_print}\n)
+  file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/module.yml" "module: \n")
+  file(APPEND "${CMAKE_CURRENT_SOURCE_DIR}/module.yml" " name: " \"${libname}\" "\n")
+  file(APPEND "${CMAKE_CURRENT_SOURCE_DIR}/module.yml" " packageurl: " \"https://github.com/root-project/${pkgname}\"\n)
+  file(APPEND "${CMAKE_CURRENT_SOURCE_DIR}/module.yml" " tag: 0.0.0\n")
+  file(APPEND "${CMAKE_CURRENT_SOURCE_DIR}/module.yml" " path: " "${CMAKE_CURRENT_SOURCE_DIR}\n")
+  #file(APPEND "${CMAKE_CURRENT_SOURCE_DIR}/module.yml" " publicheaders: " "${hdrlist}\n")
+  #file(APPEND "${CMAKE_CURRENT_SOURCE_DIR}/module.yml" " sources: " "${srclist}\n")
+  file(APPEND "${CMAKE_CURRENT_SOURCE_DIR}/module.yml" " targets: " "${libname}\n")
+  file(APPEND "${CMAKE_CURRENT_SOURCE_DIR}/module.yml" " deps: " "${dlist}\n")
 
-  get_filename_component(PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
-  message(STATUS "Printing yml configuration for dir " ${PARENT_DIR})
+  set(nameofpackagefile "${listname}.yml")
 
-  get_filename_component(PARENT_PATH ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
-  message(STATUS "Printing yml configuration for path " ${PARENT_PATH})
-
-  if("${PARENT_DIR}" STREQUAL "${listname}")
-    generate_package_manifest(${listname})
-    file(APPEND "${PARENT_PATH}/package.yml" "module: \n  name:  " ${libname}\n)
-    file(APPEND "${PARENT_PATH}/package.yml" "packageurl: " \"https://github.com/root-project/${pkgname}\"\n)
-    file(APPEND "${PARENT_PATH}/package.yml" "tag: 0.0.0" \n)
-    file(APPEND "${PARENT_PATH}/package.yml" "path: " ${CMAKE_CURRENT_SOURCE_DIR}\n)
-    file(APPEND "${PARENT_PATH}/package.yml" "publicheaders: " ${hdrlist_pretty_print}\n)
-    file(APPEND "${PARENT_PATH}/package.yml" "sources: ${srclist_pretty_print}" \n)
-    file(APPEND "${PARENT_PATH}/package.yml" "targets: " ${libname_pretty_print}\n)
-    file(APPEND "${PARENT_PATH}/package.yml" "deps: " ${dlist_pretty_print}}\n)
+  if(${listname})
+    if(NOT EXISTS "${CMAKE_BINARY_DIR}/${nameofpackagefile}")
+      generate_package_manifest(${listname} ${nameofpackagefile})
+    else()
+      message(STATUS "[modulariz.] ${nameofpackagefile} file already exist. Appending modules there..")
+    endif()
+   file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}" "module: \n  name: " ${libname}\n)
+   file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}" " packageurl: " \"https://github.com/root-project/${pkgname}\" "\n")
+   file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}" " tag: " "0.0.0\n")
+   file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}" " path: " "${CMAKE_CURRENT_SOURCE_DIR}\n")
+   #file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}" " publicheaders: " "${hdrlist_pretty_print}\n")
+   #file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}" " sources: " "${srclist_pretty_print}\n")
+   file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}" " targets: " "${libname_pretty_print}\n")
+   file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}" " deps: " "${dlist_pretty_print}\n")
   endif()
 endmacro()
