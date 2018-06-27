@@ -905,6 +905,7 @@ endfunction()
 #                                 [NO_SOURCES]                 : don't glob to fill SOURCES variable
 #                                 [OBJECT_LIBRARY]             : use ROOT_OBJECT_LIBRARY to generate object files
 #                                                                and then use those for linking.
+#                                 EXTERNAL_DEPENDENCIES        : checking dependencies required to be found for package
 #                                 LIBRARIES lib1 lib2          : linking flags such as dl, readline
 #                                 DEPENDENCIES lib1 lib2       : dependencies such as Core, MathCore
 #                                 BUILTINS builtin1 builtin2   : builtins like AFTERIMAGE
@@ -918,7 +919,7 @@ function(ROOT_STANDARD_LIBRARY_PACKAGE libname)
   message(STATUS "[modulariz.] ROOT_STANDARD_LIBRARY_PACKAGE for module " ${libname})
   set(options NO_INSTALL_HEADERS STAGE1 NO_HEADERS NO_SOURCES OBJECT_LIBRARY NO_MODULE)
   set(oneValueArgs)
-  set(multiValueArgs DEPENDENCIES HEADERS SOURCES BUILTINS LIBRARIES DICTIONARY_OPTIONS LINKDEF INSTALL_OPTIONS)
+  set(multiValueArgs DEPENDENCIES HEADERS SOURCES BUILTINS LIBRARIES DICTIONARY_OPTIONS LINKDEF INSTALL_OPTIONS EXTERNAL_DEPENDENCIES)
   CMAKE_PARSE_ARGUMENTS(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
   # Check if we have any unparsed arguments
@@ -955,6 +956,21 @@ function(ROOT_STANDARD_LIBRARY_PACKAGE libname)
   if(ARG_NO_MODULE)
     set(MODULE_GEN_ARG)
   endif()
+
+   if(ARG_EXTERNAL_DEPENDENCIES)
+     call(find_package_${ARG_EXTERNAL_DEPENDENCIES})
+     string(TOUPPER "${ARG_EXTERNAL_DEPENDENCIES}" EXTERNAL_DEPENDENCY)
+     set(EXTERNAL_FOUND "${EXTERNAL_DEPENDENCY}_FOUND")
+     set(EXTERNAL_DEPENDENCIES_INCLUDES "${EXTERNAL_DEPENDENCY}_INCLUDE_DIR")
+     #message(STATUS ${EXTERNAL_DEPENDENCIES_INCLUDES})
+     set(EXTERNAL_DEFINITIONS "${EXTERNAL_DEPENDENCY}_DEFINITIONS}")
+     if(NOT ${${EXTERNAL_FOUND}})
+       message(FATAL_ERROR "Please try to install ${ARG_EXTERNAL_DEPENDENCIES}, we couldn't find using Find${ARG_EXTERNAL_DEPENDENCIES}.cmake
+                           we expect to find ${EXTERNAL_FOUND}, ${EXTERNAL_DEPENDENCIES_INCLUDES} and ${EXTERNAL_DEFINITIONS}")
+     endif()
+     include_directories(${${EXTERNAL_DEPENDENCIES_INCLUDES}})
+     add_definitions(${${EXTERNAL_DEFINITIONS}})
+   endif()
 
   set(dlist "")
   set(srclist "")
@@ -995,7 +1011,7 @@ else()
 endif()
 
   if(root-modularization)
-    generate_module_manifest(${libname} ${dlist} ${srclist} ${hdrlist})
+    generate_module_manifest(${libname} "${dlist}" "${srclist}" "${hdrlist}")
   endif()
 
   ROOT_GENERATE_DICTIONARY(G__${libname} ${ARG_HEADERS}
@@ -1045,7 +1061,7 @@ macro(generate_module_manifest libname dlist srclist hdrlist)
   endforeach()
 
   foreach(f ${hdrlist})
-    list(APPEND srclist_pretty_print ${f})
+    list(APPEND hdrlist_pretty_print ${f})
     #list(APPEND srclist_pretty_print " ")
   endforeach()
   string(TOLOWER ${libname} pkgname)
@@ -1067,14 +1083,14 @@ macro(generate_module_manifest libname dlist srclist hdrlist)
     else()
       message(STATUS "[modulariz.] ${nameofpackagefile} file already exist. Appending modules there..")
     endif()
-   file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}" "module: \n  name: " ${libname}\n)
-   file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}" "\tpackageurl: " \"https://github.com/root-project/${pkgname}\" "\n")
-   file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}" "\ttag: " "0.0.0\n")
-   file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}" "\tpath: " "${CMAKE_CURRENT_SOURCE_DIR}\n")
-   file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}" "\tpublicheaders: " "${hdrlist_pretty_print}\n")
-   file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}" "\tsources: " "${srclist_pretty_print}\n")
-   file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}" "\ttargets: " "${libname_pretty_print}\n")
-   file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}" "\tdeps: " "${dlist_pretty_print}\n")
+   file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}.yml" "module: \n  name: " ${libname}\n)
+   file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}.yml" "\tpackageurl: " \"https://github.com/root-project/${pkgname}\" "\n")
+   file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}.yml" "\ttag: " "0.0.0\n")
+   file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}.yml" "\tpath: " "${CMAKE_CURRENT_SOURCE_DIR}\n")
+   file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}.yml" "\tpublicheaders: " "${hdrlist_pretty_print}\n")
+   file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}.yml" "\tsources: " "${srclist_pretty_print}\n")
+   file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}.yml" "\ttargets: " "${libname_pretty_print}\n")
+   file(APPEND "${CMAKE_BINARY_DIR}/${nameofpackagefile}.yml" "\tdeps: " "${dlist_pretty_print}\n")
   endif()
 endmacro()
 
