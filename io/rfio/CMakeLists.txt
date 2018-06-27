@@ -2,9 +2,8 @@
 # CMakeLists.txt file for building ROOT io/rfio package
 ############################################################################
 
-if(NOT root-modularization)
-   ROOT_ADD_CXX_FLAG(CMAKE_CXX_FLAGS -Wno-shadow)
-endif()
+# FIXME: to be moved to ROOT_STANDARD_LIBRARY_PACKAGE
+#ROOT_ADD_CXX_FLAG(CMAKE_CXX_FLAGS -Wno-shadow)
 
 if(CASTOR_FOUND)
 include_directories(${CASTOR_INCLUDE_DIR})
