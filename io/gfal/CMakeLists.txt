@@ -8,4 +8,5 @@ add_definitions(-D_FILE_OFFSET_BITS=64)
 
 ROOT_STANDARD_LIBRARY_PACKAGE(GFAL
                               LIBRARIES ${GFAL_LIBRARIES}
+                              EXTERNAL_DEPENDENCIES gfal
                               DEPENDENCIES Core Net RIO)
