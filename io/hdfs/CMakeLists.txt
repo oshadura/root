@@ -8,4 +8,5 @@ add_definitions(-D_FILE_OFFSET_BITS=64)
 
 ROOT_STANDARD_LIBRARY_PACKAGE(HDFS
                               LIBRARIES ${HDFS_LIBRARIES}
+                              EXTERNAL_DEPENDENCIES hdfs
                               DEPENDENCIES Net RIO Core)
