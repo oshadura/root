@@ -1414,10 +1414,10 @@ void MethodDL::Train()
    }
    
 // /// definitions for CUDA
-// #ifdef R__HAS_TMVAGPU // Included only if DNNCUDA flag is set.
+// #ifdef R__HAS_TMVAGPU // Included only if R__HAS_TMVAGPU flag is set.
 //    using Architecture_t = DNN::TCuda<Double_t>;
 // #else
-// #ifdef R__HAS_TMVACPU // Included only if DNNCPU flag is set.
+// #ifdef R__HAS_TMVACPU // Included only if DNN_USE_CPU flag is set.
 //    using Architecture_t = DNN::TCpu<Double_t>;
 // #else
 //    using Architecture_t = DNN::TReference<Double_t>;

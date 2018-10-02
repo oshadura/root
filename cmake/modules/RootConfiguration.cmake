@@ -564,7 +564,11 @@ if (tmva-gpu)
 else()
   set(hastmvagpu undef)
 endif()  
-
+if(BLAS_FOUND)
+  set(hasblas define)
+else()
+  set(hasblas undef)
+ endif()
 
 CHECK_CXX_SOURCE_COMPILES("#include <string_view>
   int main() { char arr[3] = {'B', 'a', 'r'}; std::string_view strv(arr, sizeof(arr)); return 0;}" found_stdstringview)

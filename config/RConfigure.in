@@ -45,6 +45,9 @@
 #@hascefweb@ R__HAS_CEFWEB  /**/
 #@hasqt5webengine@ R__HAS_QT5WEB  /**/
 
+#@hasmathmore@ R__HAS_MATHMORE  /**/
+#@hasblas@ R__HAS_BLAS  /**/
+
 #if defined(R__HAS_VECCORE) && defined(R__HAS_VC)
 #ifndef VECCORE_ENABLE_VC
 #define VECCORE_ENABLE_VC
@@ -57,5 +60,17 @@
 
 #@hastmvacpu@ R__HAS_TMVACPU /**/
 #@hastmvagpu@ R__HAS_TMVAGPU /**/
+
+#if defined(R__HAS_TMVACPU) && defined(R__USE_IMT) && defined(R__HAS_BLAS)
+#ifndef DNN_USE_CPU
+#define DNN_USE_CPU
+#endif
+#endif
+
+#if defined(R__HAS_TMVACPU) && defined(R__USE_IMT) && defined(R__HAS_MATHMORE)
+#ifndef DNN_USE_CBLAS
+#define DNN_USE_CBLAS
+#endif
+#endif
 
 #endif

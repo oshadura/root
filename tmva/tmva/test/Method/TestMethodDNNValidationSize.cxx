@@ -2,7 +2,7 @@
 // As the reference implementation is deprecated and
 // can't be instantiated, we can only run this test
 // if there if we can run CPU or CUDA versions.
-#if (defined DNNCPU || defined DNNCUDA)
+#if (defined DNN_USE_CPU || defined R__HAS_TMVAGPU)
 
 #include "gtest/gtest.h"
 
@@ -49,9 +49,9 @@ struct TestMethodDNNValidationSize {
 
    size_t GetProcessedValidationOption(TString options)
    {
-#ifdef DNNCPU
+#ifdef DNN_USE_CPU
       const TString defualtOptions = "!H:!V:Layout=RELU|50:Architecture=CPU:";
-#elif DNNCUDA
+#elif R__HAS_TMVAGPU
       const TString defualtOptions = "!H:!V:Layout=RELU|50:Architecture=GPU:";
 #else
 #error "This should not happen. Can only compile with CPU or CUDA implementations."

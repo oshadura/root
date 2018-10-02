@@ -153,14 +153,6 @@ ROOT_ADD_TEST(test-stressvector-interpreted COMMAND ${ROOT_root_CMD} -b -q -l ${
               FAILREGEX "FAILED|Error in" DEPENDS test-stressvector)
 
 #--stressTMVA--------------------------------------------------------------------------------------
-if(CUDA_FOUND)
-  add_definitions(-DDNNCUDA)
-endif()
-
-if(BLAS_FOUND AND imt)
-  add_definitions(-DDNNCPU)
-endif()
-
 if(ROOT_tmva_FOUND)
   ROOT_EXECUTABLE(stressTMVA stressTMVA.cxx LIBRARIES TMVA)
   ROOT_ADD_TEST(test-stresstmva COMMAND stressTMVA -b LABELS longtest TIMEOUT 1800)

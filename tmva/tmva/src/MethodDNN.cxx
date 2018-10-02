@@ -444,7 +444,7 @@ void TMVA::MethodDNN::ProcessOptions()
    }
 
    if (fArchitectureString == "GPU") {
-#ifndef DNNCUDA // Included only if DNNCUDA flag is _not_ set.
+#ifndef R__HAS_TMVAGPU // Included only if R__HAS_TMVAGPU flag is _not_ set.
       Log() << kERROR << "CUDA backend not enabled. Please make sure "
                          "you have CUDA installed and it was successfully "
                          "detected by CMAKE."
@@ -453,11 +453,11 @@ void TMVA::MethodDNN::ProcessOptions()
                          "you have CUDA installed and it was successfully "
                          "detected by CMAKE."
             << Endl;
-#endif // DNNCUDA
+#endif // R__HAS_TMVAGPU
    }
 
    if (fArchitectureString == "CPU") {
-#ifndef DNNCPU // Included only if DNNCPU flag is _not_ set.
+#ifndef DNN_USE_CPU // Included only if DNN_USE_CPU flag is _not_ set.
       Log() << kERROR << "Multi-core CPU backend not enabled. Please make sure "
                          "you have a BLAS implementation and it was successfully "
                          "detected by CMake as well that the imt CMake flag is set."
@@ -466,7 +466,7 @@ void TMVA::MethodDNN::ProcessOptions()
                          "you have a BLAS implementation and it was successfully "
                          "detected by CMake as well that the imt CMake flag is set."
             << Endl;
-#endif // DNNCPU
+#endif // DNN_USE_CPU
    }
 
    //
@@ -877,7 +877,7 @@ void TMVA::MethodDNN::Train()
 void TMVA::MethodDNN::TrainGpu()
 {
 
-#ifdef DNNCUDA // Included only if DNNCUDA flag is set.
+#ifdef R__HAS_TMVAGPU // Included only if R__HAS_TMVAGPU flag is set.
    Log() << kINFO << "Start of neural network training on GPU." << Endl << Endl;
 
    size_t nValidationSamples = GetNumValidationSamples();
@@ -1049,12 +1049,12 @@ void TMVA::MethodDNN::TrainGpu()
       }
    }
 
-#else // DNNCUDA flag not set.
+#else // R__HAS_TMVAGPU flag not set.
 
    Log() << kFATAL << "CUDA backend not enabled. Please make sure "
                       "you have CUDA installed and it was successfully "
                       "detected by CMAKE." << Endl;
-#endif // DNNCUDA
+#endif // R__HAS_TMVAGPU
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1062,7 +1062,7 @@ void TMVA::MethodDNN::TrainGpu()
 void TMVA::MethodDNN::TrainCpu()
 {
 
-#ifdef DNNCPU // Included only if DNNCPU flag is set.
+#ifdef DNN_USE_CPU // Included only if DNN_USE_CPU flag is set.
    Log() << kINFO << "Start of neural network training on CPU." << Endl << Endl;
 
    size_t nValidationSamples = GetNumValidationSamples();
@@ -1243,11 +1243,11 @@ void TMVA::MethodDNN::TrainCpu()
       }
    }
 
-#else // DNNCPU flag not set.
+#else // DNN_USE_CPU flag not set.
    Log() << kFATAL << "Multi-core CPU backend not enabled. Please make sure "
                       "you have a BLAS implementation and it was successfully "
                       "detected by CMake as well that the imt CMake flag is set." << Endl;
-#endif // DNNCPU
+#endif // DNN_USE_CPU
 }
 
 ////////////////////////////////////////////////////////////////////////////////

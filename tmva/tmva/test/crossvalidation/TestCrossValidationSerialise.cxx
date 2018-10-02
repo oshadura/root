@@ -240,7 +240,7 @@ void TestCrossValidationSerialise()
       TestCvSerialise(TMVA::Types::kBDT, "BDT", bdtOptions);
    }
 
-#if (defined DNNCPU)
+#if (defined DNN_USE_CPU)
    {
       TString dnnTrainStrat = "TrainingStrategy=LearningRate=1e-1,"
                               "BatchSize=5,ConvergenceSteps=1";
