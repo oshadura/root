@@ -3,8 +3,8 @@
 set -ex
 
 # We need to put in place all relevant headers before running clang-tidy.
-mkdir ../build
-cd ../build
+mkdir ../build-copy-HEADERS
+cd ../build-copy-HEADERS
 cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -Dall=On -Dtesting=On -Dx11=Off ../root
 # We need to prebuild a minimal set of targets which are responsible for header copy
 # or generation.
@@ -21,4 +21,3 @@ make -j4 move_headers intrinsics_gen ClangCommentCommandList ClangCommentCommand
          ClangAttrTemplateInstantiate ClangAttrSpellingListIndex                     \
          ClangAttrParsedAttrImpl ClangAttrParsedAttrKinds googletest
 ln -s $PWD/compile_commands.json $PWD/../root/
-

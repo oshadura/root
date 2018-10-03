@@ -1,29 +1,30 @@
 sudo: false
 
 language: cpp
+
 os: linux
 compiler: clang
 
 cache:
+  apt: true
   ccache: true
+  directories:
+  - ../builds
 
-# Do not build our sync branch.
 branches:
   only:
     - master
-    - Travis*
+    - root-modularization-devel-gsoc18
 
-# Without the top-level env, no job will be allowed to fail.
 env:
 
 matrix:
-  # Abort all builds on a single failing matrix entry.
   fast_finish: true
 
   exclude:
     # Note: Workaround travis-ci/travis-ci#4681
     # Exclude default job which lacks our included environment variables.
-    - os: linux
+    - env:
 
   include:
     - env: TOOL=clang-format
@@ -50,12 +51,37 @@ matrix:
     - env: TOOL=minuit2-standalone
       script: cd math/minuit2 && .ci/make_and_test.sh
 
+    - env: CXX=g++-6 CC=gcc BUILD_TYPE=Release
+      compiler: gcc
+      addons:
+        apt:
+          update: true
+          sources: *sources
+          packages: [*common_deps, 'g++-6', 'g++-6-multilib', 'libc6-dbg', 'cmake', 'cmake-data']
+      script: &cmake_script
+        - .ci/cmake_script.sh
+
   allow_failures:
     # clang-tidy-modernize is still experimental
     - env: TOOL=clang-tidy-modernize
     # a lot of code doesn't follow clang-format yet
     - env: TOOL=clang-format
 
+before_deploy:
+- python $TRAVIS_BUILD_DIR/.ci/tarball.py $TRAVIS_BUILD_DIR/installdir
+
+deploy:
+  provider: releases
+  api_key:
+    secure: kweAzqj9eWYMzfAFC1Xi+DcmFu2crwDL4h0zFLgQgEzhCU3pDl5bYwdQhqVOJgRo0myqtp7RVfMbO7XklMZPCAyPP5LVQbdSJWquYA82bSL+xVNmfYt0dZSnWB9lBo28b06z8XuWyMPPDtNEVMyrup+R/vk6E8Cip+sRUIISheYX7buf5nCcb5uHvDzSlPzXzoGPK3YYm/Ch482zRr7Slb+qSXzrOhbukBZNmOaI0mDA97kWCqywlOlpDDaXu/EVHkAQxo+R+1/C6T3NbXLbwpGen+fePzFDeHPOUBigeP49DaPQtFBYzIBqDE2nUwxJNGn+kDSz0n61kknZtqRSHyahN2yO3A5hc6enRlNF9vvs9K0bj1pBiaFlRtn1LKRr7iB4zP3EbE5/gBkzhP/ux2jnsjLXJds+ZgXoQIBe21P6cyaYw5j0QTzZCEr9l4uyUNuS7gfxUqM+dWAch3rwsFyBEpd45B30wwlXH7As5h/LZNAdA5jU5xznUq3ddYLuiP7XOIB6UhSbtblDswybgb0wiw4xXmMQg8b62cN+GlrYjWud9APHK5MScUhRy2seM1SR235On0iuSA96MI+H8/sVzG5Ipaz2UH7YhW6WvO+uKWxGuNL0bRyNQ/e8UiLwH2QinkIc/pLZ7runrdRJ8F1FEUerjgiWnYjCPOG4AWo=
+  file: "$TRAVIS_BUILD_DIR/rootbase.tar.gz"
+  on:
+    repo: oshadura/root
+    branch: root-base-cmake-wip
+
+before_cache:
+  - find . -type f -printf "%T+\t%p\n" | sort | cut -f 2 > touch_order.txt
+  - cd $TRAVIS_BUILD_DIR && git rev-parse HEAD > $TRAVIS_BUILD_DIR/builds/previous_git_commit.txt
 
 # This will never run since there is not a clang-tidy only TOOL
 #  elif [[ "$TRAVIS_EVENT_TYPE" = "cron" ]] && [[ $TOOL == 'clang-tidy' ]]; then
@@ -66,5 +92,5 @@ matrix:
 #    echo "run-clang-tidy-3.9.py -j4 -clang-tidy-binary $(which clang-tidy-3.9) -checks=-*,clang-analyzer-* $FILES_REGEX"
 #    run-clang-tidy-3.9.py -j4 -clang-tidy-binary $(which clang-tidy-3.9) -checks=-*,clang-analyzer-* $FILES_REGEX
 #  fi
-  
+
 on_failure: echo "Showing current directory contents" && ls -la
