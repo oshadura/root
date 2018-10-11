@@ -1,3 +1,8 @@
+From Oksana Shadura, 11/10/18:
+Updated to 5.2.4 with tarballs taken at http://tukaani.org/xz/.
+Windows binaries were:
+ - renamed from xz-5.2.4-windows.zip to xz-5.2.4-win32.tar.gz
+
 From Danilo, 29/04/15:
 Updated to 5.2.1 with tarballs taken at http://tukaani.org/xz/
 Windows binaries were:
