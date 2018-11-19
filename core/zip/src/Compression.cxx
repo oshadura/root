@@ -15,13 +15,23 @@ namespace ROOT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-  int CompressionSettings(ECompressionAlgorithm algorithm,
+  int CompressionSettings(RCompressionSetting::EAlgorithm algorithm,
+                          int compressionLevel)
+  {
+    if (compressionLevel < 0) compressionLevel = 0;
+    if (compressionLevel > 99) compressionLevel = 99;
+    int algo = static_cast<int>(algorithm);
+    if (algorithm >= ROOT::RCompressionSetting::EAlgorithm::kUndefined) algo = 0;
+    return algo * 100 + compressionLevel;
+  }
+
+  int CompressionSettings(ROOT::ECompressionAlgorithm algorithm,
                           int compressionLevel)
   {
     if (compressionLevel < 0) compressionLevel = 0;
     if (compressionLevel > 99) compressionLevel = 99;
     int algo = algorithm;
-    if (algorithm >= ROOT::kUndefinedCompressionAlgorithm) algo = 0;
+    if (algorithm >= ROOT::ECompressionAlgorithm::kUndefinedCompressionAlgorithm) algo = 0;
     return algo * 100 + compressionLevel;
   }
 }
