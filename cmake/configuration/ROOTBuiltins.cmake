@@ -1,0 +1,30 @@
+
+function(find_package_root_zlib)
+    message(STATUS "ROOT ZLIB: building from scratch")
+    list(APPEND ROOT_BUILTINS ZLIB)
+    add_subdirectory(builtins/zlib)
+endfunction(find_package_root_zlib)
+
+function(find_package_root_xxhash)
+    message(STATUS "ROOT XXHASH: building from scratch")
+    list(APPEND ROOT_BUILTINS xxHash)
+    add_subdirectory(builtins/xxhash)
+endfunction(find_package_root_xxhash)
+
+function(find_package_root_lz4)
+    message(STATUS "ROOT LZ4: building from scratch")
+    list(APPEND ROOT_BUILTINS LZ4)
+    add_subdirectory(builtins/lz4)
+endfunction(find_package_root_lz4)
+
+function(find_package_root_openssl)
+    message(STATUS "ROOT OPENSSL: building from scratch")
+    list(APPEND ROOT_BUILTINS OpenSSL)
+    add_subdirectory(builtins/openssl)
+endfunction(find_package_root_openssl)
+
+function(find_package_root_davix)
+    message(STATUS "ROOT DAVIX: building from scratch")
+  list(APPEND ROOT_BUILTINS Davix)
+  add_subdirectory(builtins/davix)
+endfunction(find_package_root_davix)

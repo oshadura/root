@@ -47,14 +47,23 @@ set(ROOT_VERSION "${ROOT_MAJOR_VERSION}.${ROOT_MINOR_VERSION}.${ROOT_PATCH_VERSI
 
 #---Where to look first for cmake modules, before ${CMAKE_ROOT}/Modules/ is checked-------------
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/configuration)
 
 #---Enable Folders in IDE like Visual Studio----------------------------------------------------
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 #---Load some basic macros which are needed later for the confiuration and build----------------
-include(RootBuildOptions)
-include(RootNewMacros)
+set(root-lazy-build ON CACHE BOOL "ROOT lazy build prototype" FORCE)
+
 include(CheckCompiler)
+if(root-lazy-build)
+  include(ROOTModularization)
+  include(ROOTMacros)
+  include(ROOTFeatures)
+else()
+  include(RootBuildOptions)
+  include(RootNewMacros)
+endif()
 
 #---Enable CCache ------------------------------------------------------------------------------
 if(ccache)
@@ -87,7 +96,7 @@ if (build_timing)
   # FIXME: This currently will override the use of ccache if -Dbuild_timing=On -Dccache=On is passed.
   set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
   set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "${CMAKE_COMMAND} -E time")
-  #set_property(GLOBAL PROPERTY RULE_LAUNCH_CUSTOM "${CMAKE_COMMAND} -E time") 
+  #set_property(GLOBAL PROPERTY RULE_LAUNCH_CUSTOM "${CMAKE_COMMAND} -E time")
 endif()
 
 #---Enable CTest package -----------------------------------------------------------------------
@@ -100,7 +109,12 @@ endif()
 ROOT_CHECK_OUT_OF_SOURCE_BUILD()
 
 #---Here we look for installed software and switch on and of the different build options--------
-include(SearchInstalledSoftware)
+if(root-lazy-build)
+  include(ROOTDependencies)
+  include(ROOTBuiltins)
+else()
+  include(SearchInstalledSoftware)
+endif()
 ROOT_SHOW_OPTIONS()
 
 #---Here we add tcmalloc to the linker flags if needed------------------------------------------

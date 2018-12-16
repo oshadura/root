@@ -1,0 +1,9 @@
+module: 
+ name: "valarrayDict"
+ packageurl: "https://github.com/root-project/root/valarraydict"
+ tag: 0.0.0
+ path: /home/oksana/CERN_sources/root-clone/core/clingutils
+ publicheaders: valarray
+ sources: no_sources
+ targets: valarrayDict
+ deps: Core

@@ -10,10 +10,11 @@ ROOT_GLOB_HEADERS(headers ${CMAKE_CURRENT_SOURCE_DIR}/inc/*.h)
 
 set(ClingUtils_dict_headers ${headers} PARENT_SCOPE)
 
-ROOT_OBJECT_LIBRARY(ClingUtils ${sources})
-add_dependencies(ClingUtils CLING)
+ROOT_OBJECT_LIBRARY(ClingUtils ${sources}
+	                 EXTERNAL_DEPENDENCIES cling)
 
 target_include_directories(ClingUtils PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/res ${CMAKE_CURRENT_SOURCE_DIR}/../foundation/res)
+message(STATUS ${CLING_INCLUDE_DIRS})
 target_include_directories(ClingUtils PRIVATE ${CLING_INCLUDE_DIRS})
 # Register the llvm include directories after clangs. This instructs the compiler to resolve
 # headers from our builtin clang. That's an issue when we are building with bultin_llvm=Off
@@ -152,4 +153,3 @@ else()
         COMMENT "Copying LLVM resource and header files")
 endif()
 add_custom_target(LLVMRES DEPENDS ${stamp_file} CLING)
-
