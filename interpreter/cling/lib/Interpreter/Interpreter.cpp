@@ -315,6 +315,51 @@ namespace cling {
 
     bool usingCxxModules = getSema().getLangOpts().Modules;
     if (usingCxxModules) {
+      HeaderSearch& HSearch = getCI()->getPreprocessor().getHeaderSearchInfo();
+
+      // Get system include paths
+      llvm::SmallVector<std::string, 3> HSearchPaths;
+      for (auto Path = HSearch.system_dir_begin();
+            Path < HSearch.system_dir_end(); Path++) {
+        HSearchPaths.push_back((*Path).getName());
+      }
+
+      // Virtual modulemap overlay file
+      std::string MOverlay = "{\n 'version': 0,\n 'roots': [\n";
+
+      // Check if the system path exists. If it does and it contains
+      // "/include/c++/" (as stl path is always inferred from gcc path),
+      // append this to MOverlay.
+      // FIXME: Implement a more sophisticated way to detect stl paths
+      for (auto SystemPath : HSearchPaths) {
+        if (llvm::sys::fs::is_directory(SystemPath) &&
+              (SystemPath.find("/include/c++/") != std::string::npos)) {
+          MOverlay += buildModuleMapOverlayEntry(SystemPath, "/stl.modulemap",
+                m_Opts.OverlayFile, 1);
+        }
+      }
+
+      // FIXME: Support system which doesn't have /usr/include as libc path.
+      // We need to find out how to identify the correct libc path on such
+      // system, we cannot add random include path to overlay file.
+      MOverlay += buildModuleMapOverlayEntry("/usr/include", "/libc.modulemap",
+            m_Opts.OverlayFile, 0);
+
+      MOverlay += "]\n }\n ]\n }\n";
+
+      // Set up the virtual modulemap overlay file
+      std::unique_ptr<llvm::MemoryBuffer> Buffer =
+         llvm::MemoryBuffer::getMemBuffer(MOverlay);
+
+      IntrusiveRefCntPtr<clang::vfs::FileSystem> FS =
+         vfs::getVFSFromYAML(std::move(Buffer), nullptr, "modulemap.overlay.yaml");
+      if (!FS.get())
+        llvm::errs() << "Error in modulemap.overlay!\n";
+
+      clang::CompilerInvocation &CInvo = getCI()->getInvocation();
+      // Load virtual modulemap overlay file
+      CInvo.addOverlay(FS);
+
       // Explicitly create the modulemanager now. If we would create it later
       // implicitly then it would just overwrite our callbacks we set below.
       m_IncrParser->getCI()->createModuleManager();
