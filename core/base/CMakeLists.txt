@@ -213,12 +213,14 @@ set(BASE_SOURCES
   src/TVirtualX.cxx
 )
 
+if (NOT FIXME_TEMPORARILY_EXCLUDED_FOR_RUNTIME_CXXMODULES)
 if(CMAKE_CXX_STANDARD GREATER 11)
   list(APPEND BASE_HEADERS ROOT/RLogger.hxx)
   list(APPEND BASE_SOURCES v7/src/RLogger.cxx)
   # TLogger.hxx may be used without root7 flag, but is placed in v7/inc/,
   # so we need to tell ROOT_INSTALL_HEADERS() where to find it
   set(BASE_HEADER_DIRS inc/ v7/inc/)
+endif()
 endif()
 
 if(root7)
