@@ -3289,11 +3289,15 @@ llvm::StringRef ROOT::TMetaUtils::GetFileName(const clang::Decl& decl,
                             sourceManager.getIncludeLoc(headerFID));
 
    const FileEntry *headerFE = sourceManager.getFileEntryForID(headerFID);
+   if (!headerFE) {
+	std::cout << "headerFE is null!" << std::endl;
+	return invalidFilename;
+   }
+
    while (includeLoc.isValid() && sourceManager.isInSystemHeader(includeLoc)) {
       const DirectoryLookup *foundDir = 0;
       // use HeaderSearch on the basename, to make sure it takes a header from
       // the include path (e.g. not from /usr/include/bits/)
-      assert(headerFE && "Couldn't find FileEntry from FID!");
       const FileEntry *FEhdr
          = HdrSearch.LookupFile(llvm::sys::path::filename(headerFE->getName()),
                                 SourceLocation(),
@@ -3312,10 +3316,7 @@ llvm::StringRef ROOT::TMetaUtils::GetFileName(const clang::Decl& decl,
       // we trace it back to the top-level system header that includes this
       // declaration.
       if (interp.getCI()->getLangOpts().Modules && !headerFE) {
-         assert(decl.isFirstDecl() && "Couldn't trace back include from a decl"
-                                      " that is not from an AST file");
-         assert(StringRef(includeLoc.printToString(sourceManager)).startswith("<module-includes>"));
-         break;
+	break;
       }
       includeLoc = getFinalSpellingLoc(sourceManager,
                                        sourceManager.getIncludeLoc(headerFID));
