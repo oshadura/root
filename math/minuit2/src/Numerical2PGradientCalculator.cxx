@@ -20,13 +20,6 @@
 //#define DEBUG
 #if defined(DEBUG) || defined(WARNINGMSG)
 #include "Minuit2/MnPrint.h"
-#ifdef _OPENMP
-#include <omp.h>
-#include <iomanip>
-#ifdef DEBUG
-#define DEBUG_MP
-#endif
-#endif
 #endif
 
 #include <math.h>
@@ -100,9 +93,7 @@ FunctionGradient Numerical2PGradientCalculator::operator()(const MinimumParamete
    MnAlgebraicVector g2 = Gradient.G2();
    MnAlgebraicVector gstep = Gradient.Gstep();
 
-#ifndef _OPENMP
    MPIProcess mpiproc(n,0);
-#endif
 
 #ifdef DEBUG
    std::cout << "Calculating Gradient at x =   " << par.Vec() << std::endl;
@@ -111,7 +102,6 @@ FunctionGradient Numerical2PGradientCalculator::operator()(const MinimumParamete
    std::cout.precision(pr);
 #endif
 
-#ifndef _OPENMP
    // for serial execution this can be outside the loop
    MnAlgebraicVector x = par.Vec();
 
@@ -119,29 +109,6 @@ FunctionGradient Numerical2PGradientCalculator::operator()(const MinimumParamete
    unsigned int endElementIndex = mpiproc.EndElementIndex();
 
    for(unsigned int i = startElementIndex; i < endElementIndex; i++) {
-
-#else
-
- // parallelize this loop using OpenMP
-//#define N_PARALLEL_PAR 5
-#pragma omp parallel
-#pragma omp for
-//#pragma omp for schedule (static, N_PARALLEL_PAR)
-
-   for(int i = 0; i < int(n); i++) {
-
-#endif
-
-#ifdef DEBUG_MP
-      int ith = omp_get_thread_num();
-      //std::cout << "Thread number " << ith << "  " << i << std::endl;
-#endif
-
-#ifdef _OPENMP
-       // create in loop since each thread will use its own copy
-      MnAlgebraicVector x = par.Vec();
-#endif
-
       double xtf = x(i);
       double epspri = eps2 + fabs(grd(i)*eps2);
       double stepb4 = 0.;
@@ -198,19 +165,6 @@ FunctionGradient Numerical2PGradientCalculator::operator()(const MinimumParamete
          }
       }
 
-
-#ifdef DEBUG_MP
-#pragma omp critical
-      {
-         std::cout << "Gradient for thread " << ith << "  " << i << "  " << std::setprecision(15)  << grd(i) << "  " << g2(i) << std::endl;
-      }
-#endif
-
-      //     vgrd(i) = grd;
-      //     vgrd2(i) = g2;
-      //     vgstp(i) = gstep;
-
-
 #ifdef DEBUG
       pr = std::cout.precision(13);
       int iext = Trafo().ExtOfInt(i);
@@ -219,11 +173,9 @@ FunctionGradient Numerical2PGradientCalculator::operator()(const MinimumParamete
 #endif
    }
 
-#ifndef _OPENMP
    mpiproc.SyncVector(grd);
    mpiproc.SyncVector(g2);
    mpiproc.SyncVector(gstep);
-#endif
 
 #ifdef DEBUG
    std::cout << "Calculated Gradient at x =   " << par.Vec() << std::endl;
