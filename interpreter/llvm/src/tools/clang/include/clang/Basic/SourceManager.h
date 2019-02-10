@@ -35,6 +35,7 @@
 #ifndef LLVM_CLANG_BASIC_SOURCEMANAGER_H
 #define LLVM_CLANG_BASIC_SOURCEMANAGER_H
 
+#include "llvm/ADT/LazyVector.h"
 #include "clang/Basic/FileManager.h"
 #include "clang/Basic/LLVM.h"
 #include "clang/Basic/SourceLocation.h"
@@ -629,7 +630,8 @@ class SourceManager : public RefCountedBase<SourceManager> {
   ///
   /// Negative FileIDs are indexes into this table. To get from ID to an index,
   /// use (-ID - 2).
-  mutable SmallVector<SrcMgr::SLocEntry, 0> LoadedSLocEntryTable;
+  //mutable SmallVector<SrcMgr::SLocEntry, 0> LoadedSLocEntryTable;
+  mutable llvm::LazyVector<SrcMgr::SLocEntry, 4096> LoadedSLocEntryTable;
 
   /// \brief The starting offset of the next local SLocEntry.
   ///
