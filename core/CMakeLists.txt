@@ -40,7 +40,7 @@ if(cocoa)
   set(dict_opts -DSYSTEM_TYPE_macosx ${dict_opts})
 endif()
 
-set(CORE_OS_DICT_CXX_FLAGS ${dict_opts} PARENT_SCOPE)
+set(CORE_OS_DICT_CXX_FLAGS ${dict_opts} CACHE INTERNAL "")
 
 # Must come after the OS specific subdirs:
 add_subdirectory(base)
