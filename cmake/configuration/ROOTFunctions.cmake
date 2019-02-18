@@ -1,9 +1,9 @@
 #---------------------------------------------------------------------------------------------------
-#  RootNewMacros.cmake
+#  ROOTFunctions.cmake
 #---------------------------------------------------------------------------------------------------
+include(ROOTTestFunctions)
 
 set(THISDIR ${CMAKE_CURRENT_LIST_DIR})
-
 set(lib lib)
 set(bin bin)
 if(WIN32)
@@ -55,74 +55,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR OFF)
 include(CMakeParseArguments)
 
 #---------------------------------------------------------------------------------------------------
-#---ROOT_GLOB_FILES( <variable> [REALTIVE path] [FILTER regexp] <sources> ...)
-#---------------------------------------------------------------------------------------------------
-function(ROOT_GLOB_FILES variable)
-  CMAKE_PARSE_ARGUMENTS(ARG "RECURSE" "RELATIVE;FILTER" "" ${ARGN})
-  set(_possibly_recurse "")
-  if (ARG_RECURSE)
-    set(_possibly_recurse "_RECURSE")
-  endif()
-  if(ARG_RELATIVE)
-    file(GLOB${_possibly_recurse} _sources RELATIVE ${ARG_RELATIVE} ${ARG_UNPARSED_ARGUMENTS})
-  else()
-    file(GLOB${_possibly_recurse} _sources ${ARG_UNPARSED_ARGUMENTS})
-  endif()
-  if(ARG_FILTER)
-    foreach(s ${_sources})
-      if(s MATCHES ${ARG_FILTER})
-        list(REMOVE_ITEM _sources ${s})
-      endif()
-    endforeach()
-  endif()
-  set(${variable} ${_sources} PARENT_SCOPE)
-endfunction()
-
-function(ROOT_GLOB_SOURCES variable)
-  ROOT_GLOB_FILES(_sources FILTER "(^|/)G__" ${ARGN})
-  set(${variable} ${_sources} PARENT_SCOPE)
-endfunction()
-
-function(ROOT_GLOB_HEADERS variable)
-  ROOT_GLOB_FILES(_sources FILTER "LinkDef" ${ARGN})
-  set(${variable} ${_sources} PARENT_SCOPE)
-endfunction()
-
-#---------------------------------------------------------------------------------------------------
-#---ROOT_GET_SOURCES( <variable> cwd <sources> ...)
-#---------------------------------------------------------------------------------------------------
-function(ROOT_GET_SOURCES variable cwd )
-  set(sources)
-  foreach( fp ${ARGN})
-    if( IS_ABSOLUTE ${fp})
-      file(GLOB files ${fp})
-    else()
-      if(root7)
-        set(root7glob v7/src/${fp})
-      endif()
-      file(GLOB files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${cwd}/${fp} ${root7glob})
-    endif()
-    if(files)
-      foreach(s ${files})
-        if(fp MATCHES "[*]" AND s MATCHES "(^|/)G__") # Eliminate G__* files
-        elseif(s MATCHES "${cwd}/G__")
-          set(sources ${fp} ${sources})
-        else()
-          set(sources ${sources} ${s})
-        endif()
-      endforeach()
-    else()
-      if(fp MATCHES "(^|/)G__")
-        set(sources ${fp} ${sources})
-      else()
-        set(sources ${sources} ${fp})
-      endif()
-    endif()
-  endforeach()
-  set(${variable} ${sources} PARENT_SCOPE)
-endfunction()
-
-#---------------------------------------------------------------------------------------------------
 #---REFLEX_GENERATE_DICTIONARY( dictionary headerfiles SELECTION selectionfile OPTIONS opt1 opt2 ...)
 #---------------------------------------------------------------------------------------------------
 macro(REFLEX_GENERATE_DICTIONARY dictionary)
@@ -166,8 +98,8 @@ macro(REFLEX_GENERATE_DICTIONARY dictionary)
 
   set(include_dirs -I${CMAKE_CURRENT_SOURCE_DIR})
   get_directory_property(incdirs INCLUDE_DIRECTORIES)
-  foreach(d ${incdirs})
-    if(NOT "${d}" MATCHES "^(AFTER|BEFORE|INTERFACE|PRIVATE|PUBLIC|SYSTEM)$")
+  foreach( d ${incdirs})
+    if(NOT "${d}" MATCHES "AFTER|BEFORE|INTERFACE|PRIVATE|PUBLIC|SYSTEM")
       set(include_dirs ${include_dirs} -I${d})
     endif()
   endforeach()
@@ -331,6 +263,15 @@ function(ROOT_GENERATE_DICTIONARY dictionary)
     endif()
   endforeach()
 
+  foreach(dep ${ARG_EXTERNAL_DEPENDENCIES})
+    if(TARGET ${dep})
+      get_property(dep_include_dirs TARGET ${dep} PROPERTY INCLUDE_DIRECTORIES)
+      foreach(d ${dep_include_dirs})
+        set(includedirs ${includedirs} -I${d})
+      endforeach()
+    endif()
+  endforeach()
+
   if(includedirs)
     list(REMOVE_DUPLICATES includedirs)
   endif()
@@ -383,13 +324,6 @@ function(ROOT_GENERATE_DICTIONARY dictionary)
       set(cpp_module ${ARG_MODULE})
       if(runtime_cxxmodules)
         set(cpp_module_file ${library_output_dir}/${cpp_module}.pcm)
-        if (APPLE)
-          # FIXME: Krb5Auth.h triggers "declaration of '__mb_cur_max' has a different language linkage"
-          # problem.
-          if (${cpp_module} MATCHES "(Krb5Auth|GCocoa|GQuartz)")
-            set(cpp_module_file)
-          endif()
-        endif(APPLE)
       endif()
     endif()
   else()
@@ -409,6 +343,12 @@ function(ROOT_GENERATE_DICTIONARY dictionary)
   #---Get the library and module dependencies-----------------
   if(ARG_DEPENDENCIES)
     foreach(dep ${ARG_DEPENDENCIES})
+      set(newargs ${newargs} -m  ${libprefix}${dep}_rdict.pcm)
+    endforeach()
+  endif()
+
+  if(ARG_EXTERNAL_DEPENDENCIES)
+    foreach(dep ${ARG_EXTERNAL_DEPENDENCIES})
       set(newargs ${newargs} -m  ${libprefix}${dep}_rdict.pcm)
     endforeach()
   endif()
@@ -449,7 +389,7 @@ function(ROOT_GENERATE_DICTIONARY dictionary)
                      COMMAND ${command} -v2 -f  ${dictionary}.cxx ${newargs} ${excludepathsargs} ${rootmapargs}
                                         ${definitions} ${includedirs} ${ARG_OPTIONS} ${headerfiles} ${_linkdef}
                      IMPLICIT_DEPENDS ${_implicitdeps}
-                     DEPENDS ${_list_of_header_dependencies} ${_linkdef} ${ROOTCINTDEP} ${ARG_DEPENDENCIES})
+                     DEPENDS ${_list_of_header_dependencies} ${_linkdef} ${ROOTCINTDEP} ${ARG_DEPENDENCIES} ${ARG_EXTERNAL_DEPENDENCIES})
   get_filename_component(dictname ${dictionary} NAME)
 
   #---roottest compability
@@ -490,7 +430,7 @@ function(ROOT_GENERATE_DICTIONARY dictionary)
   if(cpp_module)
     ROOT_CXXMODULES_APPEND_TO_MODULEMAP("${cpp_module}" "${headerfiles}")
   endif()
-endfunction(ROOT_GENERATE_DICTIONARY)
+endfunction()
 
 #---------------------------------------------------------------------------------------------------
 #---ROOT_CXXMODULES_APPEND_TO_MODULEMAP( library library_headers )
@@ -512,6 +452,14 @@ function (ROOT_CXXMODULES_APPEND_TO_MODULEMAP library library_headers)
                     FILTER "LinkDef" ${d}/*)
     list(APPEND found_headers "${dir_headers}")
   endforeach()
+
+  if (APPLE)
+    # FIXME: Krb5Auth.h triggers "declaration of '__mb_cur_max' has a different language linkage"
+    # problem.
+    if (${library} MATCHES "Krb5Auth" OR ${library} MATCHES "(GCocoa|GQuartz)")
+      return()
+    endif()
+  endif(APPLE)
 
   set(excluded_headers RConfig.h RVersion.h RtypesImp.h
                         RtypesCore.h TClassEdit.h
@@ -611,6 +559,7 @@ function (ROOT_CXXMODULES_APPEND_TO_MODULEMAP library library_headers)
   endif()
 endfunction()
 
+#---------------------------------------------------------------------------------------------------
 #---ROOT_LINKER_LIBRARY( <name> source1 source2 ...[TYPE STATIC|SHARED] [DLLEXPORT]
 #                        [NOINSTALL] LIBRARIES library1 library2 ...
 #                        BUILTINS dep1 dep2)
@@ -624,76 +573,22 @@ function(ROOT_LINKER_LIBRARY library)
   if(ARG_TEST) # we are building a test, so add EXCLUDE_FROM_ALL
     set(_all EXCLUDE_FROM_ALL)
   endif()
-  if(NOT EXTERNAL_DEPENDENCY_SET)
-      set(EXTERNAL_DEPENDENCY_SET CACHE INTERNAL "List of externals")
-  endif()
   if(root-lazy-build)
   if(ARG_EXTERNAL_DEPENDENCIES)
-      foreach(dep ${ARG_EXTERNAL_DEPENDENCIES})
-         string(TOUPPER "${dep}" dep_canonic)
-         string(TOLOWER "${dep}" dep_package_name)
-         if(NOT ${dep_canonic}_FOUND)
-            message(STATUS "We are processing dependency: " ${dep})
-            message(STATUS " => FIND_PACKAGE()")
-            #FIXME: resolve naming issue
-            find_package(${dep_canonic} QUIET)
-            find_package(${dep_package_name} QUIET)
-            if(NOT ${dep_canonic}_FOUND AND COMMAND find_package_root_${dep})
-               message(STATUS "Check if we still didn't found ${dep_canonic}_FOUND " ${${dep_canonic}_FOUND})
-               message(STATUS " => FIND_ROOT_PACKAGE()")
-               call(find_package_root_${dep})
-            endif()
-            if(NOT ${dep_canonic}_FOUND)
-               message(STATUS "Check if we found a package: " ${${dep_canonic}_FOUND})
-               message(STATUS " => PKG_CONFIG()")
-               find_package(PkgConfig)
-               #again few possible cases [non standart]
-               pkg_check_modules(${dep_canonic} ${${dep}_REQUIRED} lib${dep_package_name})
-               pkg_check_modules(${dep_canonic} ${${dep}_REQUIRED} ${dep_package_name})
-               set(${dep_canonic}_LIBRARIES ${${dep_canonic}_LDFLAGS} CACHE INTERNAL "")
-               set(${dep_canonic}_LIBRARY ${${dep_canonic}_LIBRARIES}  CACHE INTERNAL "")
-               set(${dep_canonic}_INCLUDE_DIRS ${${dep_canonic}_INCLUDE_DIRS} CACHE INTERNAL "")
-               set(${dep_canonic}_INCLUDE_DIR ${${dep_canonic}_INCLUDE_DIRS} CACHE INTERNAL "")
-               set(${dep_canonic}_FOUND ${${dep_canonic}_FOUND} CACHE INTERNAL "")
-            endif()
-            message(STATUS "Check if we found a package " ${dep_canonic} " = " ${${dep_canonic}_FOUND})
-            set(EXTERNAL_FOUND "${dep_canonic}_FOUND")
-            set(EXTERNAL_DEPENDENCIES_INCLUDE "${dep_canonic}_INCLUDE_DIR")
-            set(EXTERNAL_DEPENDENCIES_INCLUDES "${dep_canonic}_INCLUDE_DIRS")
-            set(EXTERNAL_DEPENDENCIES_VERSION_STRING "${dep_canonic}_VERSION_STRING")
-            set(EXTERNAL_LIBRARY "${dep_canonic}_LIBRARY")
-            set(EXTERNAL_LIBRARIES "${dep_canonic}_LIBRARIES")
-            set(EXTERNAL_DEFINITIONS "${dep_canonic}_DEFINITIONS")
-            set(EXTERNAL_VERSION "${dep_canonic}_VERSION")
-            if(NOT ${${EXTERNAL_FOUND}})
-            endif()
-            message(STATUS "---" ${EXTERNAL_FOUND} " ==== " ${${EXTERNAL_FOUND}})
-            message(STATUS "---" ${EXTERNAL_DEPENDENCIES_INCLUDE} " ==== YES" ${${EXTERNAL_DEPENDENCIES_INCLUDE}})
-            message(STATUS "---" ${EXTERNAL_DEPENDENCIES_INCLUDES} " ==== " ${${EXTERNAL_DEPENDENCIES_INCLUDES}})
-            message(STATUS "---" ${EXTERNAL_LIBRARIES} " ==== " ${${EXTERNAL_LIBRARIES}})
-            message(STATUS "---"  ${EXTERNAL_LIBRARY} " ==== " ${${EXTERNAL_LIBRARY}})
-            message(STATUS "---" ${EXTERNAL_DEFINITIONS} " ==== " ${${EXTERNAL_DEFINITIONS}})
-            message(STATUS "---" ${EXTERNAL_VERSION} " ==== " ${${EXTERNAL_VERSION}})
-            message(STATUS "---" ${EXTERNAL_DEPENDENCIES_VERSION_STRING} " ==== " ${${EXTERNAL_DEPENDENCIES_VERSION_STRING}})
-            if(NOT ${${EXTERNAL_FOUND}})
-               message(FATAL_ERROR "Please try to install ${ARG_EXTERNAL_DEPENDENCIES}, we couldn't find using Find${ARG_EXTERNAL_DEPENDENCIES}.cmake
+     call(find_package_${ARG_EXTERNAL_DEPENDENCIES})
+     string(TOUPPER "${ARG_EXTERNAL_DEPENDENCIES}" EXTERNAL_DEPENDENCY)
+     set(EXTERNAL_FOUND "${EXTERNAL_DEPENDENCY}_FOUND")
+     set(EXTERNAL_DEPENDENCIES_INCLUDES "${EXTERNAL_DEPENDENCY}_INCLUDE_DIR")
+     #message(STATUS ${EXTERNAL_DEPENDENCIES_INCLUDES})
+     set(EXTERNAL_DEFINITIONS "${EXTERNAL_DEPENDENCY}_DEFINITIONS}")
+     if(NOT ${${EXTERNAL_FOUND}})
+       message(FATAL_ERROR "Please try to install ${ARG_EXTERNAL_DEPENDENCIES}, we couldn't find using Find${ARG_EXTERNAL_DEPENDENCIES}.cmake
                            we expect to find ${EXTERNAL_FOUND}, ${EXTERNAL_DEPENDENCIES_INCLUDES} and ${EXTERNAL_DEFINITIONS}")
-            endif()
-            if(${dep_canonic}_FOUND AND NOT TARGET ${dep}::${dep})
-               add_library(${dep}::${dep} INTERFACE IMPORTED)
-               set_property(TARGET ${dep}::${dep} PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${${EXTERNAL_DEPENDENCIES_INCLUDES}}")
-               set_property(TARGET ${dep}::${dep} PROPERTY INTERFACE_LINK_LIBRARIES "${${EXTERNAL_LIBRARIES}}")
-               message(STATUS "--- Target " ${dep}::${dep} "==== has property INTERFACE_INCLUDE_DIRECTORIES -> " ${${EXTERNAL_DEPENDENCIES_INCLUDES}})
-               message(STATUS "--- Target " ${dep}::${dep} "==== has property INTERFACE_LINK_LIBRARIES -> " ${${EXTERNAL_LIBRARIES}})
-               add_definitions(${${EXTERNAL_DEFINITIONS}})
-               list(APPEND EXTERNAL_DEPENDENCY_SET "${dep}::${dep}")
-               message(STATUS "ROOT dependencies: " ${EXTERNAL_DEPENDENCY_SET})
-            endif()
-       endif()
-       endforeach()
-    endif()
+     endif()
+     include_directories(${${EXTERNAL_DEPENDENCIES_INCLUDES}})
+     add_definitions(${${EXTERNAL_DEFINITIONS}})
   endif()
-  message(STATUS "--- Target " ${library} "==== has property INTERFACE_LINK_LIBRARIES => " ${EXTERNAL_DEPENDENCY_SET})
+  endif()
   include_directories(BEFORE ${CMAKE_BINARY_DIR}/include)
   set(library_name ${library})
   if(TARGET ${library})
@@ -728,7 +623,7 @@ function(ROOT_LINKER_LIBRARY library)
     endif()
     #---create a shared library with the .def file------------------------
     add_library(${library} ${_all} SHARED ${lib_srcs})
-    target_link_libraries(${library} PUBLIC ${ARG_LIBRARIES} ${ARG_DEPENDENCIES} ${EXTERNAL_DEPENDENCY_SET})
+    target_link_libraries(${library} PUBLIC ${ARG_LIBRARIES} ${ARG_DEPENDENCIES} ${ARG_EXTERNAL_DEPENDENCIES})
     set_target_properties(${library} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
   else()
     add_library( ${library} ${_all} ${ARG_TYPE} ${lib_srcs})
@@ -738,7 +633,7 @@ function(ROOT_LINKER_LIBRARY library)
     if(CMAKE_PROJECT_NAME STREQUAL ROOT AND NOT explicitlink)
       target_link_libraries(${library} PUBLIC ${ARG_LIBRARIES})
     else()
-      target_link_libraries(${library} PUBLIC ${ARG_LIBRARIES} ${ARG_DEPENDENCIES} ${EXTERNAL_DEPENDENCY_SET})
+      target_link_libraries(${library} PUBLIC ${ARG_LIBRARIES} ${ARG_DEPENDENCIES} ${ARG_EXTERNAL_DEPENDENCIES})
     endif()
   endif()
   if(TARGET G__${library})
@@ -756,7 +651,7 @@ function(ROOT_LINKER_LIBRARY library)
   set_property(GLOBAL APPEND PROPERTY ROOT_EXPORTED_TARGETS ${library})
   set_target_properties(${library} PROPERTIES OUTPUT_NAME ${library_name})
   set_target_properties(${library} PROPERTIES INTERFACE_LINK_LIBRARIES "${ARG_DEPENDENCIES}")
-  set_target_properties(${library} PROPERTIES INTERFACE_LINK_LIBRARIES "${EXTERNAL_DEPENDENCY_SET}")
+  set_target_properties(${library} PROPERTIES INTERFACE_LINK_LIBRARIES "${ARG_EXTERNAL_DEPENDENCIES}")
   target_include_directories(${library} INTERFACE $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
   # Do not add -Dname_EXPORTS to the command-line when building files in this
   # target. Doing so is actively harmful for the modules build because it
@@ -796,78 +691,8 @@ endfunction()
 #---ROOT_OBJECT_LIBRARY( <name> source1 source2 ... BUILTINS dep1 dep2 ...)
 #---------------------------------------------------------------------------------------------------
 function(ROOT_OBJECT_LIBRARY library)
-  CMAKE_PARSE_ARGUMENTS(ARG "" "" "EXTERNAL_DEPENDENCIES;BUILTINS"  ${ARGN})
+  CMAKE_PARSE_ARGUMENTS(ARG "" "" "BUILTINS"  ${ARGN})
   ROOT_GET_SOURCES(lib_srcs src ${ARG_UNPARSED_ARGUMENTS})
-   if(NOT EXTERNAL_DEPENDENCY_SET)
-      set(EXTERNAL_DEPENDENCY_SET CACHE INTERNAL "List of externals")
-   endif()
-   if(root-lazy-build)
-      if(ARG_EXTERNAL_DEPENDENCIES)
-    foreach(dep ${ARG_EXTERNAL_DEPENDENCIES})
-       string(TOUPPER "${dep}" dep_canonic)
-       string(TOLOWER "${dep}" dep_package_name)
-       if(NOT ${dep_canonic}_FOUND)
-          message(STATUS "We are processing dependency: " ${dep})
-          message(STATUS " => FIND_PACKAGE()")
-          #FIXME: resolve naming issue
-          find_package(${dep_canonic} QUIET)
-          find_package(${dep_package_name} QUIET)
-          if(NOT ${dep_canonic}_FOUND AND COMMAND find_package_root_${dep})
-             message(STATUS "Check if we still didn't found ${dep_canonic}_FOUND " ${${dep_canonic}_FOUND})
-             message(STATUS " => FIND_ROOT_PACKAGE()")
-             call(find_package_root_${dep})
-          endif()
-          if(NOT ${dep_canonic}_FOUND)
-             message(STATUS "Check if we found a package: " ${${dep_canonic}_FOUND})
-             message(STATUS " => PKG_CONFIG()")
-             find_package(PkgConfig)
-             #again few possible cases [non standart]
-             pkg_check_modules(${dep_canonic} ${${dep}_REQUIRED} lib${dep_package_name})
-             pkg_check_modules(${dep_canonic} ${${dep}_REQUIRED} ${dep_package_name})
-             set(${dep_canonic}_LIBRARIES ${${dep_canonic}_LDFLAGS} CACHE INTERNAL "")
-             set(${dep_canonic}_LIBRARY ${${dep_canonic}_LIBRARIES}  CACHE INTERNAL "")
-             set(${dep_canonic}_INCLUDE_DIRS ${${dep_canonic}_INCLUDE_DIRS} CACHE INTERNAL "")
-             set(${dep_canonic}_INCLUDE_DIR ${${dep_canonic}_INCLUDE_DIRS} CACHE INTERNAL "")
-             set(${dep_canonic}_FOUND ${${dep_canonic}_FOUND} CACHE INTERNAL "")
-          endif()
-          message(STATUS "Check if we found a package " ${dep_canonic} " = " ${${dep_canonic}_FOUND})
-          set(EXTERNAL_FOUND "${dep_canonic}_FOUND")
-          set(EXTERNAL_DEPENDENCIES_INCLUDE "${dep_canonic}_INCLUDE_DIR")
-          set(EXTERNAL_DEPENDENCIES_INCLUDES "${dep_canonic}_INCLUDE_DIRS")
-          set(EXTERNAL_DEPENDENCIES_VERSION_STRING "${dep_canonic}_VERSION_STRING")
-          set(EXTERNAL_LIBRARY "${dep_canonic}_LIBRARY")
-          set(EXTERNAL_LIBRARIES "${dep_canonic}_LIBRARIES")
-          set(EXTERNAL_DEFINITIONS "${dep_canonic}_DEFINITIONS")
-          set(EXTERNAL_VERSION "${dep_canonic}_VERSION")
-          if(NOT ${${EXTERNAL_FOUND}})
-          endif()
-          message(STATUS "---" ${EXTERNAL_FOUND} " ==== " ${${EXTERNAL_FOUND}})
-          message(STATUS "---" ${EXTERNAL_DEPENDENCIES_INCLUDE} " ==== " ${${EXTERNAL_DEPENDENCIES_INCLUDE}})
-          message(STATUS "---" ${EXTERNAL_DEPENDENCIES_INCLUDES} " ==== " ${${EXTERNAL_DEPENDENCIES_INCLUDES}})
-          message(STATUS "---" ${EXTERNAL_LIBRARIES} " ==== " ${${EXTERNAL_LIBRARIES}})
-          message(STATUS "---"  ${EXTERNAL_LIBRARY} " ==== " ${${EXTERNAL_LIBRARY}})
-          message(STATUS "---" ${EXTERNAL_DEFINITIONS} " ==== " ${${EXTERNAL_DEFINITIONS}})
-          message(STATUS "---" ${EXTERNAL_VERSION} " ==== " ${${EXTERNAL_VERSION}})
-          message(STATUS "---" ${EXTERNAL_DEPENDENCIES_VERSION_STRING} " ==== " ${${EXTERNAL_DEPENDENCIES_VERSION_STRING}})
-          if(NOT ${${EXTERNAL_FOUND}})
-             message(FATAL_ERROR "Please try to install ${ARG_EXTERNAL_DEPENDENCIES}, we couldn't find using Find${ARG_EXTERNAL_DEPENDENCIES}.cmake
-                         we expect to find ${EXTERNAL_FOUND}, ${EXTERNAL_DEPENDENCIES_INCLUDES} and ${EXTERNAL_DEFINITIONS}")
-          endif()
-          if(${dep_canonic}_FOUND AND NOT TARGET ${dep}::${dep})
-             add_library(${dep}::${dep} INTERFACE IMPORTED)
-             set_property(TARGET ${dep}::${dep} PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${${EXTERNAL_DEPENDENCIES_INCLUDES}}")
-             set_property(TARGET ${dep}::${dep} PROPERTY INTERFACE_LINK_LIBRARIES "${${EXTERNAL_LIBRARIES}}")
-             message(STATUS "--- Target " ${dep}::${dep} "==== has property INTERFACE_INCLUDE_DIRECTORIES -> " ${${EXTERNAL_DEPENDENCIES_INCLUDES}})
-             message(STATUS "--- Target " ${dep}::${dep} "==== has property INTERFACE_LINK_LIBRARIES -> " ${${EXTERNAL_LIBRARIES}})
-             add_definitions(${${EXTERNAL_DEFINITIONS}})
-             list(APPEND EXTERNAL_DEPENDENCY_SET "${dep}::${dep}")
-             message(STATUS "ROOT dependencies: " ${EXTERNAL_DEPENDENCY_SET})
-          endif()
-     endif()
-     endforeach()
-  endif()
-endif()
-message(STATUS "--- Target " ${library} "==== has property INTERFACE_LINK_LIBRARIES => " ${EXTERNAL_DEPENDENCY_SET})
   include_directories(BEFORE ${CMAKE_BINARY_DIR}/include)
   add_library( ${library} OBJECT ${lib_srcs})
   if(lib_srcs MATCHES "(^|/)(G__[^.]*)[.]cxx.*")
@@ -920,7 +745,6 @@ message(STATUS "--- Target " ${library} "==== has property INTERFACE_LINK_LIBRAR
     endif()
     set_property(TARGET ${library} APPEND PROPERTY OBJECTS ${obj})
   endforeach()
-  install_moduleconfig(${library})
 endfunction()
 
 #---------------------------------------------------------------------------------------------------
@@ -1462,7 +1286,8 @@ endfunction()
 function(ROOT_PATH_TO_STRING resultvar path)
   # FIXME: Copied and modified from ROOTTEST_TARGETNAME_FROM_FILE. We should find a common place for that code.
   # FIXME: ROOTTEST_TARGETNAME_FROM_FILE could be replaced by just a call to string(MAKE_C_IDENTIFIER)...
-  CMAKE_PARSE_ARGUMENTS(ARG "" "" "PATH_SEPARATOR_REPLACEMENT" ${ARGN})#---------------------------------------------------------------------------------------------------
+  CMAKE_PARSE_ARGUMENTS(ARG "" "" "PATH_SEPARATOR_REPLACEMENT" ${ARGN})
+
   set(sep_replacement "")
   if (ARG_PATH_SEPARATOR_REPLACEMENT)
     set(sep_replacement ${ARG_PATH_SEPARATOR_REPLACEMENT})
@@ -1479,132 +1304,6 @@ function(ROOT_PATH_TO_STRING resultvar path)
 
   set(${resultvar} "${mangledname}" PARENT_SCOPE)
 endfunction(ROOT_PATH_TO_STRING)
-
-#----------------------------------------------------------------------------
-# ROOT_ADD_UNITTEST_DIR(<libraries ...>)
-#----------------------------------------------------------------------------
-function(ROOT_ADD_UNITTEST_DIR)
-  ROOT_GLOB_FILES(test_files ${CMAKE_CURRENT_SOURCE_DIR}/*.cxx)
-  # Get the component from the path. Eg. core to form coreTests test suite name.
-  ROOT_PATH_TO_STRING(test_name ${CMAKE_CURRENT_SOURCE_DIR}/)
-  ROOT_ADD_GTEST(${test_name}Unit ${test_files} LIBRARIES ${ARGN})
-endfunction()
-
-#----------------------------------------------------------------------------
-# function ROOT_ADD_GTEST(<testsuite> source1 source2... LIBRARIES)
-#
-function(ROOT_ADD_GTEST test_suite)
-  CMAKE_PARSE_ARGUMENTS(ARG "" "" "LIBRARIES" ${ARGN})
-  include_directories(${CMAKE_CURRENT_BINARY_DIR} ${GTEST_INCLUDE_DIR} ${GMOCK_INCLUDE_DIR})
-
-  ROOT_GET_SOURCES(source_files . ${ARG_UNPARSED_ARGUMENTS})
-  # Note we cannot use ROOT_EXECUTABLE without user-specified set of LIBRARIES to link with.
-  # The test suites should choose this in their specific CMakeLists.txt file.
-  # FIXME: For better coherence we could restrict the libraries the test suite could link
-  # against. For example, tests in Core should link only against libCore. This could be tricky
-  # to implement because some ROOT components create more than one library.
-  ROOT_EXECUTABLE(${test_suite} ${source_files} LIBRARIES ${ARG_LIBRARIES})
-  target_link_libraries(${test_suite} gtest gtest_main gmock gmock_main)
-  if(MSVC)
-    set(test_exports "/EXPORT:_Init_thread_abort /EXPORT:_Init_thread_epoch
-        /EXPORT:_Init_thread_footer /EXPORT:_Init_thread_header /EXPORT:_tls_index")
-    set_property(TARGET ${test_suite} APPEND_STRING PROPERTY LINK_FLAGS ${test_exports})
-  endif()
-
-  ROOT_PATH_TO_STRING(mangled_name ${test_suite} PATH_SEPARATOR_REPLACEMENT "-")
-  ROOT_ADD_TEST(gtest${mangled_name} COMMAND ${test_suite} WORKING_DIR ${CMAKE_CURRENT_BINARY_DIR})
-endfunction()
-
-
-#----------------------------------------------------------------------------
-# ROOT_ADD_TEST_SUBDIRECTORY( <name> )
-#----------------------------------------------------------------------------
-function(ROOT_ADD_TEST_SUBDIRECTORY subdir)
-  file(RELATIVE_PATH subdir ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${subdir})
-  set_property(GLOBAL APPEND PROPERTY ROOT_TEST_SUBDIRS ${subdir})
-endfunction()
-
-#----------------------------------------------------------------------------
-# ROOT_ADD_PYUNITTESTS( <name> )
-#----------------------------------------------------------------------------
-function(ROOT_ADD_PYUNITTESTS name)
-  set(ROOT_ENV ROOTSYS=${ROOTSYS}
-      PATH=${ROOTSYS}/bin:$ENV{PATH}
-      LD_LIBRARY_PATH=${ROOTSYS}/lib:$ENV{LD_LIBRARY_PATH}
-      PYTHONPATH=${ROOTSYS}/lib:$ENV{PYTHONPATH})
-  string(REGEX REPLACE "[_]" "-" good_name "${name}")
-  ROOT_ADD_TEST(pyunittests-${good_name}
-                COMMAND ${PYTHON_EXECUTABLE} -B -m unittest discover -s ${CMAKE_CURRENT_SOURCE_DIR} -p "*.py" -v
-                ENVIRONMENT ${ROOT_ENV})
-endfunction()
-
-#----------------------------------------------------------------------------
-# ROOT_ADD_PYUNITTEST( <name> <file>)
-#----------------------------------------------------------------------------
-function(ROOT_ADD_PYUNITTEST name file)
-  CMAKE_PARSE_ARGUMENTS(ARG "WILLFAIL" "" "COPY_TO_BUILDDIR" ${ARGN})
-
-  set(ROOT_ENV ROOTSYS=${ROOTSYS}
-      PATH=${ROOTSYS}/bin:$ENV{PATH}
-      LD_LIBRARY_PATH=${ROOTSYS}/lib:$ENV{LD_LIBRARY_PATH}
-      PYTHONPATH=${ROOTSYS}/lib:$ENV{PYTHONPATH})
-  string(REGEX REPLACE "[_]" "-" good_name "${name}")
-  get_filename_component(file_name ${file} NAME)
-  get_filename_component(file_dir ${file} DIRECTORY)
-
-  if(ARG_COPY_TO_BUILDDIR)
-    foreach(copy_file ${ARG_COPY_TO_BUILDDIR})
-      get_filename_component(abs_path ${copy_file} ABSOLUTE)
-      set(copy_files ${copy_files} ${abs_path})
-    endforeach()
-    set(copy_to_builddir COPY_TO_BUILDDIR ${copy_files})
-  endif()
-
-  if(ARG_WILLFAIL)
-    set(will_fail WILLFAIL)
-  endif()
-
-  ROOT_ADD_TEST(pyunittests-${good_name}
-                COMMAND ${PYTHON_EXECUTABLE} -B -m unittest discover -s ${CMAKE_CURRENT_SOURCE_DIR}/${file_dir} -p ${file_name} -v
-                ENVIRONMENT ${ROOT_ENV}
-                ${copy_to_builddir}
-                ${will_fail})
-endfunction()
-
-#----------------------------------------------------------------------------
-# ROOT_ADD_CXX_FLAG(var flag)
-#----------------------------------------------------------------------------
-function(ROOT_ADD_CXX_FLAG var flag)
-  string(REGEX REPLACE "[-.+/:= ]" "_" flag_esc "${flag}")
-  CHECK_CXX_COMPILER_FLAG("-Werror ${flag}" CXX_HAS${flag_esc})
-  if(CXX_HAS${flag_esc})
-    set(${var} "${${var}} ${flag}" PARENT_SCOPE)
-  endif()
-endfunction()
-#----------------------------------------------------------------------------
-# ROOT_ADD_C_FLAG(var flag)
-#----------------------------------------------------------------------------
-function(ROOT_ADD_C_FLAG var flag)
-  string(REGEX REPLACE "[-.+/:= ]" "_" flag_esc "${flag}")
-  CHECK_C_COMPILER_FLAG("-Werror ${flag}" C_HAS${flag_esc})
-  if(C_HAS${flag_esc})
-    set(${var} "${${var}} ${flag}" PARENT_SCOPE)
-  endif()
-endfunction()
-
-#----------------------------------------------------------------------------
-# ROOT_ADD_COMPILE_OPTIONS(flags)
-#----------------------------------------------------------------------------
-macro(ROOT_ADD_COMPILE_OPTIONS flags)
-  foreach(__flag ${flags})
-    check_cxx_compiler_flag("-Werror ${__flag}" __result)
-    if(__result)
-      add_compile_options(${__flag})
-    endif()
-  endforeach()
-  unset(__flag)
-  unset(__result)
-endmacro()
 
 #----------------------------------------------------------------------------
 # find_python_module(module [REQUIRED] [QUIET])

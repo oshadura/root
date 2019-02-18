@@ -106,10 +106,18 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/configuration)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 #---Load some basic macros which are needed later for the confiuration and build----------------
-include(RootBuildOptions)
-include(RootNewMacros)
-include(ROOTMacros)
+set(root-lazy-build ON CACHE BOOL "ROOT lazy build prototype")
+
 include(CheckCompiler)
+if(root-lazy-build)
+  include(ROOTModularization)
+  include(ROOTMacros)
+  include(RootNewMacros)
+  include(ROOTFeatures)
+else()
+  include(RootBuildOptions)
+  include(RootNewMacros)
+endif()
 
 #---Enable CCache ------------------------------------------------------------------------------
 if(ccache)
@@ -151,12 +159,18 @@ if(testing)
   enable_testing()
 endif()
 
-#---Check if the user wants to build the project in the source directory------------------------
+#---Here we look for installed software and switch on and of the different build options--------
 ROOT_CHECK_OUT_OF_SOURCE_BUILD()
 
 #---Here we look for installed software and switch on and of the different build options--------
-include(SearchInstalledSoftware)
-ROOT_SHOW_ENABLED_OPTIONS()
+if(root-lazy-build)
+   include(ROOTDependencies)
+   include(ROOTBuiltins)
+   ROOT_SHOW_OPTIONS()
+else()
+   include(SearchInstalledSoftware)
+   ROOT_SHOW_ENABLED_OPTIONS()
+endif()
 
 #---Here we add tcmalloc to the linker flags if needed------------------------------------------
 if (TCMALLOC_FOUND)
@@ -257,6 +271,7 @@ if(MSVC)
 else()
   set(_os_cat "cat")
 endif()
+if(NOT root-lazy-build)
 file(TO_NATIVE_PATH "${CMAKE_BINARY_DIR}/include/module.modulemap.extra" _from_native)
 file(TO_NATIVE_PATH "${CMAKE_BINARY_DIR}/include/module.modulemap" _to_native)
 
@@ -270,6 +285,7 @@ add_custom_command(
 install(FILES "${CMAKE_BINARY_DIR}/include/module.modulemap" DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT headers)
 
 add_dependencies(move_artifacts copymodulemap)
+endif()
 
 # Provide our own modulemap for implementations other than libcxx.
 if (NOT WIN32 AND NOT libcxx)
@@ -408,6 +424,7 @@ install(
 )
 
 #---hsimple.root---------(use the executable for clearer dependencies and proper return code)---
+if(NOT root-lazy-build)
 add_custom_target(hsimple ALL DEPENDS tutorials/hsimple.root)
 add_dependencies(hsimple onepcm)
 if(WIN32)
@@ -426,7 +443,7 @@ else()
                      DEPENDS $<TARGET_FILE:root.exe> Cling Hist Tree Gpad Graf HistPainter move_artifacts)
 endif()
 install(FILES ${CMAKE_BINARY_DIR}/tutorials/hsimple.root DESTINATION ${CMAKE_INSTALL_TUTDIR} COMPONENT tests)
-
+endif()
 #---version--------------------------------------------------------------------------------------
 if(NOT WIN32)
 add_custom_target(version COMMAND ${CMAKE_SOURCE_DIR}/build/unix/makeversion.sh ${CMAKE_BINARY_DIR}

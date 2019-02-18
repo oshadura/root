@@ -39,7 +39,7 @@ set(LZ4_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
 add_library(lz4 STATIC ${LZ4_PUBLIC_HEADERS} ${LZ4_PRIVATE_HEADERS} ${LZ4_SOURCES})
 set_target_properties(lz4 PROPERTIES C_VISIBILITY_PRESET hidden POSITION_INDEPENDENT_CODE ON)
 target_include_directories(lz4 INTERFACE $<BUILD_INTERFACE:${LZ4_INCLUDE_DIR}>)
-target_link_libraries(lz4 PRIVATE xxHash::xxHash)
+target_link_libraries(lz4 PRIVATE xxhash::xxhash)
 
 add_library(LZ4::LZ4 ALIAS lz4)
 

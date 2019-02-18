@@ -1,7 +1,4 @@
-find_package(LZ4 REQUIRED)
-find_package(xxHash REQUIRED)
-
-ROOT_OBJECT_LIBRARY(Lz4 src/ZipLZ4.cxx)
+ROOT_OBJECT_LIBRARY(Lz4 src/ZipLZ4.cxx EXTERNAL_DEPENDENCIES lz4 xxhash)
 target_include_directories(Lz4 PRIVATE ${LZ4_INCLUDE_DIR} ${xxHash_INCLUDE_DIR})
 
 ROOT_INSTALL_HEADERS()

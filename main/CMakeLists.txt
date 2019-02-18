@@ -3,6 +3,10 @@
 # @author Pere Mato, CERN
 ############################################################################
 
+ROOT_EXECUTABLE(rootnb.exe nbmain.cxx LIBRARIES Core)
+ROOT_EXECUTABLE(root.exe rmain.cxx LIBRARIES Core Rint)
+
+if(NOT root-lazy-build)
 if(NOT WIN32)
   ROOT_EXECUTABLE(rootn.exe rmain.cxx LIBRARIES New Core MathCore Rint)
   if(CMAKE_SYSTEM_NAME STREQUAL Linux)
@@ -11,7 +15,6 @@ if(NOT WIN32)
   ROOT_EXECUTABLE(roots.exe roots.cxx LIBRARIES Core MathCore)
   ROOT_EXECUTABLE(xpdtest xpdtest.cxx LIBRARIES Proof Tree Hist RIO Net Thread Matrix MathCore)
 endif()
-ROOT_EXECUTABLE(root.exe rmain.cxx LIBRARIES Core Rint)
 if(MSVC)
   set(root_exports "/EXPORT:_Init_thread_abort /EXPORT:_Init_thread_epoch
       /EXPORT:_Init_thread_footer /EXPORT:_Init_thread_header /EXPORT:_tls_index
@@ -24,10 +27,9 @@ if(MSVC)
 else()
   ROOT_EXECUTABLE(hadd hadd.cxx LIBRARIES Core RIO Net Hist Graf Graf3d Gpad Tree Matrix MathCore MultiProc)
 endif()
-ROOT_EXECUTABLE(rootnb.exe nbmain.cxx LIBRARIES Core)
-
 #---CreateHaddCommandLineOptions------------------------------------------------------------------
 generateHeaders(${CMAKE_SOURCE_DIR}/main/src/hadd-argparse.py ${CMAKE_BINARY_DIR}/include/haddCommandLineOptionsHelp.h hadd)
+endif()
 
 if(fortran AND CMAKE_Fortran_COMPILER)
   ROOT_EXECUTABLE(g2root g2root.f LIBRARIES minicern)

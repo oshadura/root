@@ -115,7 +115,18 @@ endif()
 add_subdirectory(rootcling_stage1)
 
 #-------------------------------------------------------------------------------
-ROOT_LINKER_LIBRARY(Core $<TARGET_OBJECTS:BaseTROOT> ${objectlibs} BUILTINS LZMA)
+if(root-lazy-build)
+   ROOT_LINKER_LIBRARY(Core $<TARGET_OBJECTS:BaseTROOT> ${objectlibs}
+                        EXTERNAL_DEPENDENCIES pcre xxhash lz4 zlib lzma)
+target_link_libraries(Core
+  PRIVATE
+    ${CMAKE_DL_LIBS}
+    ${CMAKE_THREAD_LIBS_INIT}
+    ${corelinklibs}
+)
+
+else()
+   ROOT_LINKER_LIBRARY(Core $<TARGET_OBJECTS:BaseTROOT> ${objectlibs} BUILTINS LZMA)
 
 target_link_libraries(Core
   PRIVATE
@@ -128,6 +139,8 @@ target_link_libraries(Core
     ${CMAKE_THREAD_LIBS_INIT}
     ${corelinklibs}
 )
+
+endif()
 
 if(cling)
   add_dependencies(Core CLING)
