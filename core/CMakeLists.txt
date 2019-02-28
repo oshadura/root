@@ -19,6 +19,7 @@ add_subdirectory(imt)
 add_subdirectory(zip)
 add_subdirectory(lzma)
 add_subdirectory(lz4)
+add_subdirectory(snappy)
 
 if(NOT WIN32)
   add_subdirectory(newdelete)
