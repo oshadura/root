@@ -110,9 +110,59 @@ enum ECompressionAlgorithm {
    kUndefinedCompressionAlgorithm = RCompressionSetting::EAlgorithm::kUndefined
 };
 
+class CompressionSetting final {
+public:
+   CompressionSetting(int setting) : fSetting(setting) {}
+   CompressionSetting(RCompressionSetting setting) : fSetting(setting) {}
+   CompressionSetting(ROOT::RCompressionSetting::EAlgorithm alg,  ROOT::RCompressionSetting::ELevel level)
+   {
+      if (alg >= kUndefinedCompressionAlgorithm) alg = kUseGlobalCompressionSetting;
+      if (static_cast<int>(level) > 9) level = static_cast<ELevel>(9);
+      if (level < kInherit) level = kInherit;
+      if (level == kInherit) {
+         switch (alg) {
+            case kUnsetCompressionAlgorithm:
+               level = kUseGlobalCompressionLevel;
+            case kUseGlobalCompressionAlgorithm:
+               level = kUseGlobalCompressionLevel;
+               break;
+            case kZLIB:
+               level = kDefaultZLIB;
+               break;
+            case kLZMA:
+               level = kDefaultLZMA;
+               break;
+            case kOldCompressionAlgo:
+               level = kDefaultOld;
+               break;
+            case kLZ4:
+               level = kDefaultLZ4;
+               break;
+            case kUndefinedCompressionAlgorithm:
+               // This case should be impossible as we eliminate it above.
+               level = kInherit;
+         }
+      }
+      fSetting = alg * 100 + level;
+   }
+
+   operator ECompressionSetting() const {return static_cast<RCompressionSetting>(fSetting);}
+   operator ECompressionAlgorithm() const {return fSetting == -1 ? kUnsetCompressionAlgorithm : static_cast<RCompressionAlgorithm>(fSetting / 100);}
+   operator ECompressionLevel() const {return fSetting == -1 ?  kInherit : static_cast<RCompressionLevel>(fSetting % 100);}
+   operator int() const __attribute__ ((deprecated)) {return fSetting;}
+   bool operator !=(CompressionSetting other) const {return fSetting != other.fSetting;}
+
+   // Non-deprecated mechanism to convert the compression setting to an integer.  Needed because we want to keep the compression
+   // setting as an Int_t internally for serialization backward compatibility.
+   int AsInt() const {return fSetting;}
+
+private:
+   int fSetting{kUseGlobalCompressionSetting};
+};
+
 int CompressionSettings(RCompressionSetting::EAlgorithm algorithm, int compressionLevel);
 /// Deprecated name, do *not* use:
-int CompressionSettings(ROOT::ECompressionAlgorithm algorithm, int compressionLevel);
+int CompressionSettings(ROOT::RCompressionAlgorithm algorithm, int compressionLevel);
 } // namespace ROOT
 
 #endif
