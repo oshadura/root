@@ -103,6 +103,7 @@ void R__zipMultipleAlgorithm(int cxlevel, int *srcsize, char *src, int *tgtsize,
      return;
   } else if (compressionAlgorithm == ROOT::RCompressionSetting::EAlgorithm::kZSTD) {
      R__zipZSTD(cxlevel, srcsize, src, tgtsize, tgt, irep);
+     return;
   } else if (compressionAlgorithm == ROOT::RCompressionSetting::EAlgorithm::kOldCompressionAlgo || compressionAlgorithm == ROOT::RCompressionSetting::EAlgorithm::kUseGlobal) {
      R__zipOld(cxlevel, srcsize, src, tgtsize, tgt, irep);
      return;
@@ -371,6 +372,10 @@ void R__unzip(int *srcsize, uch *src, int *tgtsize, uch *tgt, int *irep)
      return;
   } else if (is_valid_header_lz4(src)) {
      R__unzipLZ4(srcsize, src, tgtsize, tgt, irep);
+     return;
+  }
+  else if (is_valid_header_zstd(src)) {
+     R__unzipZSTD(srcsize, src, tgtsize, tgt, irep);
      return;
   }
 
