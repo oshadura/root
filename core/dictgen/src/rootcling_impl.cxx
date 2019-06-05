@@ -2101,7 +2101,7 @@ static bool CheckModuleValid(TModuleGenerator &modGen, const std::string &resour
    headerSearch.loadTopLevelSystemModules();
 
    // Actually lookup the module on the computed module name.
-   clang::Module *module = headerSearch.lookupModule(StringRef(moduleName));
+   clang::Module *module = headerSearch.lookupModule(StringRef(moduleName), true, true);
 
    // Inform the user and abort if we can't find a module with a given name.
    if (!module) {
