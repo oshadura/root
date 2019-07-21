@@ -91,7 +91,7 @@ function(tablegen project ofn)
   set_property(DIRECTORY APPEND
     PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${ofn}.tmp ${ofn})
 
-  set(TABLEGEN_OUTPUT ${TABLEGEN_OUTPUT} ${CMAKE_CURRENT_BINARY_DIR}/${ofn} PARENT_SCOPE)
+  set(TABLEGEN_OUTPUT ${TABLEGEN_OUTPUT} ${CMAKE_CURRENT_BINARY_DIR}/${ofn} CACHE INTERNAL "")
   set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/${ofn} PROPERTIES
     GENERATED 1)
 endfunction()
@@ -107,7 +107,7 @@ function(add_public_tablegen_target target)
     add_dependencies(${target} ${LLVM_COMMON_DEPENDS})
   endif()
   set_target_properties(${target} PROPERTIES FOLDER "Tablegenning")
-  set(LLVM_COMMON_DEPENDS ${LLVM_COMMON_DEPENDS} ${target} PARENT_SCOPE)
+  set(LLVM_COMMON_DEPENDS ${LLVM_COMMON_DEPENDS} ${target} CACHE INTERNAL "")
 endfunction()
 
 if(LLVM_USE_HOST_TOOLS)
@@ -149,8 +149,8 @@ macro(add_tablegen target project)
   endif()
 
   # Effective tblgen executable to be used:
-  set(${project}_TABLEGEN_EXE ${${project}_TABLEGEN} PARENT_SCOPE)
-  set(${project}_TABLEGEN_TARGET ${${project}_TABLEGEN} PARENT_SCOPE)
+  set(${project}_TABLEGEN_EXE ${${project}_TABLEGEN} CACHE INTERNAL "")
+  set(${project}_TABLEGEN_TARGET ${${project}_TABLEGEN} CACHE INTERNAL "")
 
   if(LLVM_USE_HOST_TOOLS)
     if( ${${project}_TABLEGEN} STREQUAL "${target}" )
@@ -159,7 +159,7 @@ macro(add_tablegen target project)
       else()
         set(${project}_TABLEGEN_EXE "${LLVM_NATIVE_BUILD}/Release/bin/${target}")
       endif()
-      set(${project}_TABLEGEN_EXE ${${project}_TABLEGEN_EXE} PARENT_SCOPE)
+      set(${project}_TABLEGEN_EXE ${${project}_TABLEGEN_EXE} CACHE INTERNAL "")
 
       llvm_ExternalProject_BuildCmd(tblgen_build_cmd ${target}
                                     ${LLVM_NATIVE_BUILD}
@@ -171,7 +171,7 @@ macro(add_tablegen target project)
         COMMENT "Building native TableGen..."
         USES_TERMINAL)
       add_custom_target(${project}-tablegen-host DEPENDS ${${project}_TABLEGEN_EXE})
-      set(${project}_TABLEGEN_TARGET ${project}-tablegen-host PARENT_SCOPE)
+      set(${project}_TABLEGEN_TARGET ${project}-tablegen-host CACHE INTERNAL "")
     endif()
   endif()
 

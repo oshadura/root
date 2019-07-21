@@ -237,8 +237,8 @@ else()
   # CMake assumes slashes as PATH.
   file(TO_CMAKE_PATH ${LLVM_CONFIG_CMAKE_PATH} LLVM_CMAKE_PATH)
 
-  find_program(LLVM_TABLEGEN_EXE "llvm-tblgen" ${LLVM_TOOLS_BINARY_DIR}
-    NO_DEFAULT_PATH)
+  find_program(LLVM_TABLEGEN_EXE "llvm-tblgen" ${LLVM_TOOLS_BINARY_DIR} NO_DEFAULT_PATH)
+  set(LLVM_TABLEGEN_EXE ${LLVM_TABLEGEN_EXE} CACHE PATH "Path to llvm-tblgen")
 
   set(LLVMCONFIG_FILE "${LLVM_CMAKE_PATH}/LLVMConfig.cmake")
   if(EXISTS ${LLVMCONFIG_FILE})
@@ -392,7 +392,7 @@ if(builtin_llvm)
       MESSAGE(FATAL_ERROR "Cannot extract LLVM version number (${versionpart}) from ${llvmconfigfile}")
     endif()
   endforeach()
-  set(LLVM_VERSION "${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}" PARENT_SCOPE)
+  set(LLVM_VERSION "${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}" CACHE INTERNAL "")
 else()
   set(LLVM_INCLUDE_DIRS ${LLVM_MAIN_INCLUDE_DIR}
     CACHE STRING "System LLVM include directories."
@@ -400,7 +400,7 @@ else()
   # We cannot include LLVMConfig.cmake here. We reply on builtin clang to discover the available
   # llvm version and set it in clang version.
   # FIXME: This is a very ugly workaround. Is there a better way to do this?
-  set(LLVM_VERSION ${CLANG_VERSION} PARENT_SCOPE)
+  set(LLVM_VERSION ${CLANG_VERSION} CACHE INTERNAL "")
 endif()
 
 #---Avoid to dependencies to system (e.g. atomic) libraries without modifying the LLVM code----------
