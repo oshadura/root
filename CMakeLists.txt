@@ -112,11 +112,18 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 #---Load some basic macros which are needed later for the confiuration and build----------------
-include(RootBuildOptions)
 include(RootMacros)
 include(CheckCompiler)
 include(CheckAssembler)
 include(CheckIntrinsics)
+if(runtime_cxxmodules)
+  include(RootModularization)
+  include(RootAdditionalMacros)
+  include(RootFeatures)
+  include(RootOptions)
+else()
+  include(RootBuildOptions)
+endif()
 
 #---Enable CCache ------------------------------------------------------------------------------
 if(ccache)
@@ -566,7 +573,11 @@ if(testing)
   endif()
 endif()
 
-ROOT_SHOW_ENABLED_OPTIONS()
+if(runtime_cxxmodules)
+  ROOT_SHOW_ENABLED_FEATURES()
+else()
+  ROOT_SHOW_ENABLED_OPTIONS()
+endif()
 
 #---Packaging-------------------------------------------------------------------------------------
 include(RootCPack)
