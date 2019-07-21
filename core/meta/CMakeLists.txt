@@ -51,7 +51,7 @@ set(Meta_dict_headers
   TVirtualIsAProxy.h
   TVirtualRefProxy.h
   TVirtualStreamerInfo.h
-  PARENT_SCOPE
+  CACHE INTERNAL ""
 )
 
 ROOT_OBJECT_LIBRARY(Meta

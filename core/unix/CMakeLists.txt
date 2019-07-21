@@ -10,7 +10,7 @@
 
 set(Unix_dict_headers
   TUnixSystem.h
-  PARENT_SCOPE
+  CACHE INTERNAL ""
 )
 
 ROOT_OBJECT_LIBRARY(Unix
