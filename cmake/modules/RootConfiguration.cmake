@@ -568,7 +568,11 @@ else()
 endif()
 
 #---root-config----------------------------------------------------------------------------------------------
-ROOT_GET_OPTIONS(features ENABLED)
+if(runtime_cxxmodules)
+  ROOT_GET_FEATURES(features ENABLED)
+else()
+  ROOT_GET_OPTIONS(features ENABLED)
+endif()
 set(features "cxx${CMAKE_CXX_STANDARD} ${features}")
 set(configfeatures ${features})
 set(configargs ${ROOT_CONFIGARGS})
@@ -599,10 +603,17 @@ configure_file(${CMAKE_SOURCE_DIR}/config/Makefile.in config/Makefile.config NEW
 configure_file(${CMAKE_SOURCE_DIR}/config/mimes.unix.in ${CMAKE_BINARY_DIR}/etc/root.mimes NEWLINE_STYLE UNIX)
 
 #---Generate the ROOTConfig files to be used by CMake projects-----------------------------------------------
-ROOT_GET_OPTIONS(ROOT_ALL_OPTIONS)
-ROOT_GET_OPTIONS(ROOT_ENABLED_OPTIONS ENABLED)
-configure_file(${CMAKE_SOURCE_DIR}/cmake/scripts/ROOTConfig-version.cmake.in
+if(runtime_cxxmodules)
+  ROOT_GET_FEATURES(ROOT_ALL_OPTIONS)
+  ROOT_GET_FEATURES(ROOT_ENABLED_OPTIONS ENABLED)
+  configure_file(${CMAKE_SOURCE_DIR}/cmake/scripts/ROOTConfig-version.cmake.in
                ${CMAKE_BINARY_DIR}/ROOTConfig-version.cmake @ONLY NEWLINE_STYLE UNIX)
+else()
+  ROOT_GET_OPTIONS(ROOT_ALL_OPTIONS)
+  ROOT_GET_OPTIONS(ROOT_ENABLED_OPTIONS ENABLED)
+  configure_file(${CMAKE_SOURCE_DIR}/cmake/scripts/ROOTConfig-version.cmake.in
+               ${CMAKE_BINARY_DIR}/ROOTConfig-version.cmake @ONLY NEWLINE_STYLE UNIX)
+endif()
 
 #---Compiler flags (because user apps are a bit dependent on them...)----------------------------------------
 string(REGEX REPLACE "(^|[ ]*)-W[^ ]*" "" __cxxflags "${CMAKE_CXX_FLAGS}")
