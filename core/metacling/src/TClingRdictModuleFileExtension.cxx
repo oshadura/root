@@ -54,7 +54,7 @@ void TClingRdictModuleFileExtension::Writer::writeExtensionContents(clang::Sema 
    const clang::Preprocessor &PP = SemaRef.getPreprocessor();
 
    llvm::StringRef CachePath = PP.getHeaderSearchInfo().getHeaderSearchOpts().ModuleCachePath;
-   std::string RdictsStart = "lib" + Opts.CurrentModule + "_";
+   std::string RdictsStart = Opts.CurrentModule + "_";
    const std::string RdictsEnd = "_rdict.pcm";
 
    using namespace llvm;
@@ -77,7 +77,9 @@ void TClingRdictModuleFileExtension::Writer::writeExtensionContents(clang::Sema 
       if (llvm::sys::fs::is_directory(FilePath))
          continue;
       StringRef FileName = llvm::sys::path::filename(FilePath);
-      if (FileName.startswith(RdictsStart) && FileName.endswith(RdictsEnd)) {
+      if ((FileName.startswith(RdictsStart) ||
+           FileName.startswith(std::string("lib") + RdictsStart)) &&
+          FileName.endswith(RdictsEnd)) {
 
          uint64_t Record[] = {FIRST_EXTENSION_RECORD_ID};
          Stream.EmitRecordWithBlob(Abbrev, Record, FileName);
