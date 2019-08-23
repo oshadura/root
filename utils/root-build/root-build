@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+
+import rootbuild
+
+if __name__ == '__main__':
+   rootbuild.main()
