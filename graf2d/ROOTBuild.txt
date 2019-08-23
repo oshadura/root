@@ -1,0 +1,32 @@
+;===------------------------------------------------------------------------===;
+;
+; Copyright (C) 1995-2019, Rene Brun and Fons Rademakers.
+; All rights reserved.
+;
+; For the licensing terms see $ROOTSYS/LICENSE.
+; For the list of contributors see $ROOTSYS/README/CREDITS.
+;
+;===------------------------------------------------------------------------===;
+
+[common]
+subdirectories =
+ asimage
+ cocoa
+ fitsio
+ freetype
+ gpad
+ gpadv7
+ graf
+ gviz
+ mathtext
+ postscript
+ primitives
+ quartz
+ win32gdk
+ x11
+ x11ttf
+
+[component_0]
+type = Group
+name = Graf2DLibraries
+parent = $ROOT
