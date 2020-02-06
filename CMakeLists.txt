@@ -166,6 +166,9 @@ endif()
 #---Here we look for installed software and switch on and of the different build options--------
 include(SearchInstalledSoftware)
 
+#---Add Installation Variables------------------------------------------------------------------
+include(RootInstallDirs)
+
 #---Here we add tcmalloc to the linker flags if needed------------------------------------------
 if (TCMALLOC_FOUND)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -ltcmalloc -L${TCMALLOC_LIBRARY_PATH}")

@@ -8,6 +8,26 @@
 include(ExternalProject)
 include(FindPackageHandleStandardArgs)
 
+###############################
+# TBD: Temporary place to be moved in ROOTInstallDirs.cmake
+if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
+  if(gnuinstall)
+    set(CMAKE_INSTALL_LIBDIR "lib/root" CACHE PATH "object code libraries (lib/root)")
+  else()
+    set(CMAKE_INSTALL_LIBDIR "lib" CACHE PATH "object code libraries (lib)")
+  endif()
+endif()
+
+if(NOT DEFINED CMAKE_INSTALL_INCLUDEDIR)
+  if(gnuinstall)
+    set(CMAKE_INSTALL_INCLUDEDIR "include/root" CACHE PATH "C header files (include/root)")
+  else()
+    set(CMAKE_INSTALL_INCLUDEDIR "include" CACHE PATH "C header files (include)")
+  endif()
+endif()
+###############################
+
+
 set(lcgpackages http://lcgpackages.web.cern.ch/lcgpackages/tarFiles/sources)
 
 macro(find_package)

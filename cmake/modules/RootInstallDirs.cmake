@@ -50,21 +50,29 @@ if(NOT DEFINED CMAKE_INSTALL_BINDIR)
   set(CMAKE_INSTALL_BINDIR "bin" CACHE PATH "user executables (bin)")
 endif()
 
-if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
-  if(gnuinstall)
-    set(CMAKE_INSTALL_LIBDIR "lib/root" CACHE PATH "object code libraries (lib/root)")
-  else()
-    set(CMAKE_INSTALL_LIBDIR "lib" CACHE PATH "object code libraries (lib)")
-  endif()
+#if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
+#  if(gnuinstall)
+#    set(CMAKE_INSTALL_LIBDIR "lib/root" CACHE PATH "object code libraries (lib/root)")
+#  else()
+#    set(CMAKE_INSTALL_LIBDIR "lib" CACHE PATH "object code libraries (lib)")
+#  endif()
+#endif()
+
+if(WIN32)
+  set(runtimedir ${CMAKE_INSTALL_BINDIR})
+elseif(APPLE)
+  set(runtimedir ${CMAKE_INSTALL_LIBDIR})
+else()
+  set(runtimedir ${CMAKE_INSTALL_LIBDIR})
 endif()
 
-if(NOT DEFINED CMAKE_INSTALL_INCLUDEDIR)
-  if(gnuinstall)
-    set(CMAKE_INSTALL_INCLUDEDIR "include/root" CACHE PATH "C header files (include/root)")
-  else()
-    set(CMAKE_INSTALL_INCLUDEDIR "include" CACHE PATH "C header files (include)")
-  endif()
-endif()
+#if(NOT DEFINED CMAKE_INSTALL_INCLUDEDIR)
+#  if(gnuinstall)
+#    set(CMAKE_INSTALL_INCLUDEDIR "include/root" CACHE PATH "C header files (include/root)")
+#  else()
+#    set(CMAKE_INSTALL_INCLUDEDIR "include" CACHE PATH "C header files (include)")
+#  endif()
+#endif()
 
 if(NOT DEFINED CMAKE_INSTALL_SYSCONFDIR)
   if(gnuinstall)
@@ -267,3 +275,38 @@ foreach(dir BINDIR
     set(CMAKE_INSTALL_FULL_${dir} "${CMAKE_INSTALL_${dir}}")
   endif()
 endforeach()
+
+#---RPATH options-------------------------------------------------------------------------------
+#  When building, don't use the install RPATH already (but later on when installing)
+set(CMAKE_SKIP_BUILD_RPATH FALSE)         # don't skip the full RPATH for the build tree
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) # use always the build RPATH for the build tree
+set(CMAKE_MACOSX_RPATH TRUE)              # use RPATH for MacOSX
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) # point to directories outside the build tree to the install RPATH
+
+# Check whether to add RPATH to the installation (the build tree always has the RPATH enabled)
+if(rpath)
+  set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}) # install LIBDIR
+  set(CMAKE_SKIP_INSTALL_RPATH FALSE)          # don't skip the full RPATH for the install tree
+elseif(APPLE)
+  set(CMAKE_INSTALL_NAME_DIR "@rpath")
+  if(gnuinstall)
+    set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}) # install LIBDIR
+  else()
+    set(CMAKE_INSTALL_RPATH "@loader_path/../lib")    # self relative LIBDIR
+  endif()
+  set(CMAKE_SKIP_INSTALL_RPATH FALSE)          # don't skip the full RPATH for the install tree
+else()
+  set(CMAKE_SKIP_INSTALL_RPATH TRUE)           # skip the full RPATH for the install tree
+endif()
+
+#---deal with the DCMAKE_IGNORE_PATH------------------------------------------------------------
+if(macos_native)
+  if(APPLE)
+    set(CMAKE_IGNORE_PATH)
+    foreach(_prefix /sw /opt/local /usr/local) # Fink installs in /sw, and MacPort in /opt/local and Brew in /usr/local
+      list(APPEND CMAKE_IGNORE_PATH ${_prefix}/bin ${_prefix}/include ${_prefix}/lib)
+    endforeach()
+  else()
+    message(STATUS "Option 'macos_native' is only for MacOS systems. Ignoring it.")
+  endif()
+endif()
