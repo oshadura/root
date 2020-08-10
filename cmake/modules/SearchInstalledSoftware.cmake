@@ -293,6 +293,20 @@ if(builtin_lz4)
   add_subdirectory(builtins/lz4)
 endif()
 
+#---Check for zfp--------------------------------------------------------------------
+if(zfp)
+  message(STATUS "Looking for zfp")
+  find_package(ZFP)
+  if(NOT ZFP_FOUND)
+    if(fail-on-missing)
+      message(FATAL_ERROR "ZFP libraries not found and they are required (zfp option enabled)")
+    else()
+      message(STATUS "ZFP not found. Switching off zfp option")
+      set(zfp OFF CACHE BOOL "Disabled because ZFP not found" FORCE)
+    endif()
+  endif()
+endif()
+
 #---Check for X11 which is mandatory lib on Unix--------------------------------------
 if(x11)
   message(STATUS "Looking for X11")
@@ -1581,7 +1595,7 @@ if(tmva)
     endif()
   endif()
   if (R_FOUND)
-    #Rmva is enable when r is found and tmva is on 
+    #Rmva is enable when r is found and tmva is on
     set(tmva-rmva ON)
   endif()
   if(tmva-rmva AND NOT R_FOUND)

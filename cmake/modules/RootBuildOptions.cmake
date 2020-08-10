@@ -181,6 +181,7 @@ ROOT_BUILD_OPTION(x11 ON "Enable support for X11/Xft")
 ROOT_BUILD_OPTION(xml ON "Enable support for XML (requires libxml2)")
 ROOT_BUILD_OPTION(xrootd ON "Enable support for XRootD file server and client")
 ROOT_BUILD_OPTION(xproofd OFF "Enable LEGACY support for XProofD file server and client (requires XRootD v4 with private-devel)")
+ROOT_BUILD_OPTION(zstd OFF "Enable zstd floating point compression")
 
 option(all "Enable all optional components by default" OFF)
 option(clingtest "Enable cling tests (Note: that this makes llvm/clang symbols visible in libCling)" OFF)
