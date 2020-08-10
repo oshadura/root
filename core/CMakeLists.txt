@@ -81,6 +81,7 @@ add_subdirectory(zip)
 add_subdirectory(lzma)
 add_subdirectory(lz4)
 add_subdirectory(zstd)
+add_subdirectory(zfp)
 if(asan)
   add_subdirectory(sanitizer)
 endif()
@@ -119,6 +120,7 @@ set(objectlibs $<TARGET_OBJECTS:Base>
                $<TARGET_OBJECTS:Lzma>
                $<TARGET_OBJECTS:Lz4>
                $<TARGET_OBJECTS:Zstd>
+			   $<TARGET_OBJECTS:zfp>
                $<TARGET_OBJECTS:Zip>
                $<TARGET_OBJECTS:Meta>
                $<TARGET_OBJECTS:GuiCore>
@@ -243,6 +245,7 @@ target_link_libraries(Core
     LZ4::LZ4
     ZLIB::ZLIB
     ${ZSTD_LIBRARIES}
+	${ZFP_LIBRARIES}
     ${CMAKE_DL_LIBS}
     ${CMAKE_THREAD_LIBS_INIT}
     ${corelinklibs}
