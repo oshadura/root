@@ -28,7 +28,9 @@
 #include <stdexcept>
 #include <string>
 
+
 namespace {
+static ROOT::Internal::RRawFile *gRRawFileHelper = nullptr;
 const char *kTransportSeparator = "://";
 // Corresponds to ELineBreaks
 #ifdef _WIN32
@@ -65,6 +67,32 @@ ROOT::Internal::RRawFile::RRawFile(std::string_view url, ROptions options)
 ROOT::Internal::RRawFile::~RRawFile()
 {
    delete[] fBufferSpace;
+}
+
+void ROOT::Internal::RRawFile::InitHelper(ROOT::Internal::RRawFile *helper)
+{
+   gRRawFileHelper = helper;
+}
+
+std::unique_ptr<ROOT::Internal::RRawFile>
+ROOT::Internal::RRawFile::Create(std::string_view url, ROptions options)
+{
+   std::string transport = GetTransport(url);
+   if (transport == "file") {
+#ifdef _WIN32
+      return std::unique_ptr<RRawFile>(new RRawFileWin(url, options));
+#else
+      return std::unique_ptr<RRawFile>(new RRawFileUnix(url, options));
+#endif
+   }
+   if (transport == "http" || transport == "https") {
+      if (!gRRawFileHelper) {
+         throw std::runtime_error("HTTP/HTTPS is not supported in ROOT IOLite, please build in addition ROOT IO (RIO) library.");
+      } else {
+         return std::unique_ptr<RRawFile>(gRRawFileHelper);
+      }
+   }
+   throw std::runtime_error("Unsupported transport protocol: " + transport);
 }
 
 void *ROOT::Internal::RRawFile::MapImpl(size_t /* nbytes */, std::uint64_t /* offset */,

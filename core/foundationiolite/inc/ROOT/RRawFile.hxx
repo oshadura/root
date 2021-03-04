@@ -147,8 +147,11 @@ public:
    /// Create a new RawFile that accesses the same resource.  The file pointer is reset to zero.
    virtual std::unique_ptr<RRawFile> Clone() const = 0;
 
+   /// Helper returns a static function pointer of RRawFile (to be used in RIO library)
+   void InitHelper(RRawFile *helper);
    /// Factory method that returns a suitable concrete implementation according to the transport in the url
    static std::unique_ptr<RRawFile> Create(std::string_view url, ROptions options = ROptions());
+   static ROOT::Internal::RRawFile *RawFilePointer(std::string_view url, ROptions options = ROptions());
    /// Returns only the file location, e.g. "server/file" for http://server/file
    static std::string GetLocation(std::string_view url);
    /// Returns only the transport protocol in lower case, e.g. "http" for HTTP://server/file
