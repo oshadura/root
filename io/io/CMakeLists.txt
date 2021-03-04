@@ -9,7 +9,7 @@
 ############################################################################
 
 ROOT_LINKER_LIBRARY(RIO
-  src/RRawFileCreate.cxx
+  src/RRawFile.cxx
   src/TArchiveFile.cxx
   src/TBufferFile.cxx
   src/TBufferText.cxx
@@ -45,6 +45,7 @@ ROOT_LINKER_LIBRARY(RIO
   $<TARGET_OBJECTS:RootPcmObjs>
   LIBRARIES
     ${CMAKE_DL_LIBS}
+    ROOTFoundationIOLite
   DEPENDENCIES
     Core
     Thread
@@ -71,6 +72,7 @@ endif()
 
 ROOT_GENERATE_DICTIONARY(G__RIO
   ROOT/TBufferMerger.hxx
+  ROOT/RRawFile.hxx
   TArchiveFile.h
   TBufferFile.h
   TBufferText.h

@@ -9,8 +9,8 @@
  * For the list of contributors see $ROOTSYS/README/CREDITS.             *
  *************************************************************************/
 
-#ifndef ROOT_RRawFile
-#define ROOT_RRawFile
+#ifndef ROOT_RRawFileLocal
+#define ROOT_RRawFileLocal
 
 #include <ROOT/RStringView.hxx>
 
@@ -23,24 +23,24 @@ namespace ROOT {
 namespace Internal {
 
 /**
- * \class RRawFile RRawFile.hxx
+ * \class RRawFileLocal RRawFileLocal.hxx
  * \ingroup IO
  *
- * The RRawFile provides read-only access to local and remote files. Data can be read either byte-wise or line-wise.
- * The RRawFile base class provides line-wise access and buffering for byte-wise access. Derived classes provide the
- * low-level read operations, e.g. from a local file system or from a web server. The RRawFile is used for non-ROOT
+ * The RRawFileLocal provides read-only access to local and remote files. Data can be read either byte-wise or line-wise.
+ * The RRawFileLocal base class provides line-wise access and buffering for byte-wise access. Derived classes provide the
+ * low-level read operations, e.g. from a local file system or from a web server. The RRawFileLocal is used for non-ROOT
  * RDataSource implementations and for RNTuple.
  *
  * Files are addressed by URL consisting of a transport protocol part and a location, like file:///path/to/data
  * If the transport protocol part and the :// separator are missing, the default protocol is local file. Files are
  * opened when required (on reading, getting file size) and closed on object destruction.
  *
- * RRawFiles manage system resources and are therefore made non-copyable. They can be explicitly cloned though.
+ * RRawFileLocals manage system resources and are therefore made non-copyable. They can be explicitly cloned though.
  *
- * RRawFile objects are conditionally thread safe. See the user manual for further details:
+ * RRawFileLocal objects are conditionally thread safe. See the user manual for further details:
  * https://root.cern/manual/thread_safety/
  */
-class RRawFile {
+class RRawFileLocal {
 public:
    /// Derived classes do not necessarily need to provide file size information but they can return "not known" instead
    static constexpr std::uint64_t kUnknownFileSize = std::uint64_t(-1);
@@ -55,7 +55,7 @@ public:
    /// File supports async IO
    static constexpr int kFeatureHasAsyncIo = 0x04;
 
-   /// On construction, an ROptions parameter can customize the RRawFile behavior
+   /// On construction, an ROptions parameter can customize the RRawFileLocal behavior
    struct ROptions {
       ELineBreaks fLineBreak;
       /**
@@ -139,16 +139,18 @@ protected:
    virtual void ReadVImpl(RIOVec *ioVec, unsigned int nReq);
 
 public:
-   RRawFile(std::string_view url, ROptions options);
-   RRawFile(const RRawFile &) = delete;
-   RRawFile &operator=(const RRawFile &) = delete;
-   virtual ~RRawFile();
+   RRawFileLocal(std::string_view url, ROptions options);
+   RRawFileLocal(const RRawFileLocal &) = delete;
+   RRawFileLocal &operator=(const RRawFileLocal &) = delete;
+   virtual ~RRawFileLocal();
 
    /// Create a new RawFile that accesses the same resource.  The file pointer is reset to zero.
-   virtual std::unique_ptr<RRawFile> Clone() const = 0;
+   virtual std::unique_ptr<RRawFileLocal> Clone() const = 0;
 
+    /// Helper returns a static function pointer of RRawFileLocal (to be used in RIO library)
+   static void InitHelper(std::unique_ptr<ROOT::Internal::RRawFileLocal> helper);
    /// Factory method that returns a suitable concrete implementation according to the transport in the url
-   static std::unique_ptr<RRawFile> Create(std::string_view url, ROptions options = ROptions());
+   static std::unique_ptr<RRawFileLocal> Create(std::string_view url, ROptions options = ROptions());
    /// Returns only the file location, e.g. "server/file" for http://server/file
    static std::string GetLocation(std::string_view url);
    /// Returns only the transport protocol in lower case, e.g. "http" for HTTP://server/file
@@ -186,7 +188,7 @@ public:
 
    /// Read the next line starting from the current value of fFilePos. Returns false if the end of the file is reached.
    bool Readln(std::string &line);
-}; // class RRawFile
+}; // class RRawFileLocal
 
 } // namespace Internal
 } // namespace ROOT

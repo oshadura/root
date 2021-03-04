@@ -10,7 +10,7 @@
  *************************************************************************/
 
 #include <ROOT/RConfig.h>
-#include <ROOT/RRawFile.hxx>
+#include <ROOT/RRawFileLocal.hxx>
 #ifdef _WIN32
 #include <ROOT/RRawFileWin.hxx>
 #else
@@ -27,6 +27,8 @@
 #include <cstring>
 #include <stdexcept>
 #include <string>
+#include <functional>
+
 
 namespace {
 const char *kTransportSeparator = "://";
@@ -41,7 +43,7 @@ constexpr unsigned int kLineBreakTokenSizes[] = {0, 1, 1, 2};
 constexpr unsigned int kLineBuffer = 128; // On Readln, look for line-breaks in chunks of 128 bytes
 } // anonymous namespace
 
-size_t ROOT::Internal::RRawFile::RBlockBuffer::CopyTo(void *buffer, size_t nbytes, std::uint64_t offset)
+size_t ROOT::Internal::RRawFileLocal::RBlockBuffer::CopyTo(void *buffer, size_t nbytes, std::uint64_t offset)
 {
    if (offset < fBufferOffset)
       return 0;
@@ -56,36 +58,50 @@ size_t ROOT::Internal::RRawFile::RBlockBuffer::CopyTo(void *buffer, size_t nbyte
    return copiedBytes;
 }
 
-ROOT::Internal::RRawFile::RRawFile(std::string_view url, ROptions options)
+ROOT::Internal::RRawFileLocal::RRawFileLocal(std::string_view url, ROptions options)
    : fBlockBufferIdx(0), fBufferSpace(nullptr), fFileSize(kUnknownFileSize), fIsOpen(false), fUrl(url),
      fOptions(options), fFilePos(0)
 {
 }
 
-ROOT::Internal::RRawFile::~RRawFile()
+ROOT::Internal::RRawFileLocal::~RRawFileLocal()
 {
    delete[] fBufferSpace;
 }
 
-void *ROOT::Internal::RRawFile::MapImpl(size_t /* nbytes */, std::uint64_t /* offset */,
+std::unique_ptr<ROOT::Internal::RRawFileLocal>
+ROOT::Internal::RRawFileLocal::Create(std::string_view url, ROptions options)
+{
+   std::string transport = GetTransport(url);
+   if (transport == "file") {
+#ifdef _WIN32
+      return std::unique_ptr<RRawFileLocal>(new RRawFileWin(url, options));
+#else
+      return std::unique_ptr<RRawFileLocal>(new RRawFileUnix(url, options));
+#endif
+   }
+   throw std::runtime_error("Unsupported transport protocol: " + transport);
+}
+
+void *ROOT::Internal::RRawFileLocal::MapImpl(size_t /* nbytes */, std::uint64_t /* offset */,
    std::uint64_t& /* mapdOffset */)
 {
    throw std::runtime_error("Memory mapping unsupported");
 }
 
-void ROOT::Internal::RRawFile::ReadVImpl(RIOVec *ioVec, unsigned int nReq)
+void ROOT::Internal::RRawFileLocal::ReadVImpl(RIOVec *ioVec, unsigned int nReq)
 {
    for (unsigned i = 0; i < nReq; ++i) {
       ioVec[i].fOutBytes = ReadAt(ioVec[i].fBuffer, ioVec[i].fSize, ioVec[i].fOffset);
    }
 }
 
-void ROOT::Internal::RRawFile::UnmapImpl(void * /* region */, size_t /* nbytes */)
+void ROOT::Internal::RRawFileLocal::UnmapImpl(void * /* region */, size_t /* nbytes */)
 {
    throw std::runtime_error("Memory mapping unsupported");
 }
 
-std::string ROOT::Internal::RRawFile::GetLocation(std::string_view url)
+std::string ROOT::Internal::RRawFileLocal::GetLocation(std::string_view url)
 {
    auto idx = url.find(kTransportSeparator);
    if (idx == std::string_view::npos)
@@ -93,7 +109,7 @@ std::string ROOT::Internal::RRawFile::GetLocation(std::string_view url)
    return std::string(url.substr(idx + strlen(kTransportSeparator)));
 }
 
-std::uint64_t ROOT::Internal::RRawFile::GetSize()
+std::uint64_t ROOT::Internal::RRawFileLocal::GetSize()
 {
    if (!fIsOpen)
       OpenImpl();
@@ -104,11 +120,11 @@ std::uint64_t ROOT::Internal::RRawFile::GetSize()
    return fFileSize;
 }
 
-std::string ROOT::Internal::RRawFile::GetUrl() const {
+std::string ROOT::Internal::RRawFileLocal::GetUrl() const {
    return fUrl;
 }
 
-std::string ROOT::Internal::RRawFile::GetTransport(std::string_view url)
+std::string ROOT::Internal::RRawFileLocal::GetTransport(std::string_view url)
 {
    auto idx = url.find(kTransportSeparator);
    if (idx == std::string_view::npos)
@@ -118,7 +134,7 @@ std::string ROOT::Internal::RRawFile::GetTransport(std::string_view url)
    return transport;
 }
 
-void *ROOT::Internal::RRawFile::Map(size_t nbytes, std::uint64_t offset, std::uint64_t &mapdOffset)
+void *ROOT::Internal::RRawFileLocal::Map(size_t nbytes, std::uint64_t offset, std::uint64_t &mapdOffset)
 {
    if (!fIsOpen)
       OpenImpl();
@@ -126,14 +142,14 @@ void *ROOT::Internal::RRawFile::Map(size_t nbytes, std::uint64_t offset, std::ui
    return MapImpl(nbytes, offset, mapdOffset);
 }
 
-size_t ROOT::Internal::RRawFile::Read(void *buffer, size_t nbytes)
+size_t ROOT::Internal::RRawFileLocal::Read(void *buffer, size_t nbytes)
 {
    size_t res = ReadAt(buffer, nbytes, fFilePos);
    fFilePos += res;
    return res;
 }
 
-size_t ROOT::Internal::RRawFile::ReadAt(void *buffer, size_t nbytes, std::uint64_t offset)
+size_t ROOT::Internal::RRawFileLocal::ReadAt(void *buffer, size_t nbytes, std::uint64_t offset)
 {
    if (!fIsOpen)
       OpenImpl();
@@ -179,7 +195,7 @@ size_t ROOT::Internal::RRawFile::ReadAt(void *buffer, size_t nbytes, std::uint64
    return totalBytes;
 }
 
-void ROOT::Internal::RRawFile::ReadV(RIOVec *ioVec, unsigned int nReq)
+void ROOT::Internal::RRawFileLocal::ReadV(RIOVec *ioVec, unsigned int nReq)
 {
    if (!fIsOpen)
       OpenImpl();
@@ -187,7 +203,7 @@ void ROOT::Internal::RRawFile::ReadV(RIOVec *ioVec, unsigned int nReq)
    ReadVImpl(ioVec, nReq);
 }
 
-bool ROOT::Internal::RRawFile::Readln(std::string &line)
+bool ROOT::Internal::RRawFileLocal::Readln(std::string &line)
 {
    if (fOptions.fLineBreak == ELineBreaks::kAuto) {
       // Auto-detect line breaks according to the break discovered in the first line
@@ -220,12 +236,12 @@ bool ROOT::Internal::RRawFile::Readln(std::string &line)
    return !line.empty();
 }
 
-void ROOT::Internal::RRawFile::Seek(std::uint64_t offset)
+void ROOT::Internal::RRawFileLocal::Seek(std::uint64_t offset)
 {
    fFilePos = offset;
 }
 
-void ROOT::Internal::RRawFile::Unmap(void *region, size_t nbytes)
+void ROOT::Internal::RRawFileLocal::Unmap(void *region, size_t nbytes)
 {
    if (!fIsOpen)
       throw std::runtime_error("Cannot unmap, file not open");

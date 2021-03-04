@@ -36,7 +36,7 @@ constexpr int kDefaultBlockSize = 4096; // If fstat() does not provide a block s
 } // anonymous namespace
 
 ROOT::Internal::RRawFileUnix::RRawFileUnix(std::string_view url, ROptions options)
-   : RRawFile(url, options), fFileDes(-1)
+   : RRawFileLocal(url, options), fFileDes(-1)
 {
 }
 
@@ -46,7 +46,7 @@ ROOT::Internal::RRawFileUnix::~RRawFileUnix()
       close(fFileDes);
 }
 
-std::unique_ptr<ROOT::Internal::RRawFile> ROOT::Internal::RRawFileUnix::Clone() const
+std::unique_ptr<ROOT::Internal::RRawFileLocal> ROOT::Internal::RRawFileUnix::Clone() const
 {
    return std::make_unique<RRawFileUnix>(fUrl, fOptions);
 }
@@ -136,7 +136,7 @@ void ROOT::Internal::RRawFileUnix::ReadVImpl(RIOVec *ioVec, unsigned int nReq)
    Warning("RRawFileUnix",
            "io_uring setup failed, falling back to default ReadV implementation");
 #endif
-   RRawFile::ReadVImpl(ioVec, nReq);
+   RRawFileLocal::ReadVImpl(ioVec, nReq);
 }
 
 size_t ROOT::Internal::RRawFileUnix::ReadAtImpl(void *buffer, size_t nbytes, std::uint64_t offset)

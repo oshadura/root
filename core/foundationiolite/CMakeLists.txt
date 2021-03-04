@@ -23,12 +23,12 @@ endif ()
 # Used for generation of Core dictionary
 set(Foundationiolite_dict_headers
   ${rawfile_local_headers}
-  ROOT/RRawFile.hxx
+  ROOT/RRawFileLocal.hxx
   PARENT_SCOPE
 )
 
 set(ROOTFOUNDATIONIOLITE_SOURCES
-  src/RRawFile.cxx
+  src/RRawFileLocal.cxx
   ${rawfile_local_sources}
 )
 

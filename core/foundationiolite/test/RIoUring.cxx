@@ -4,7 +4,7 @@
 #include "ROOT/RRawFileUnix.hxx"
 
 using RIoUring = ROOT::Internal::RIoUring;
-using RIOVec = RRawFile::RIOVec;
+using RIOVec = RRawFileLocal::RIOVec;
 using RRawFileUnix = ROOT::Internal::RRawFileUnix;
 
 namespace {
@@ -84,7 +84,7 @@ TEST(RawUring, FileRegistration)
    auto file = "test_uring_readv";
    auto filesize = 2 << 20;
    FileRaii fileGuard(file, std::string(filesize, 'a')); // ~2MB
-   RRawFileUnix f(file, RRawFile::ROptions());
+   RRawFileUnix f(file, RRawFileLocal::ROptions());
    // files are opened lazily, force file open via GetSize
    auto size = f.GetSize();
 

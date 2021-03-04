@@ -27,7 +27,7 @@ constexpr int kDefaultBlockSize = 4096; // Read files in 4k pages unless told ot
 } // anonymous namespace
 
 ROOT::Internal::RRawFileWin::RRawFileWin(std::string_view url, ROptions options)
-   : RRawFile(url, options), fFilePtr(nullptr)
+   : RRawFileLocal(url, options), fFilePtr(nullptr)
 {
 }
 
@@ -37,7 +37,7 @@ ROOT::Internal::RRawFileWin::~RRawFileWin()
       fclose(fFilePtr);
 }
 
-std::unique_ptr<ROOT::Internal::RRawFile> ROOT::Internal::RRawFileWin::Clone() const
+std::unique_ptr<ROOT::Internal::RRawFileLocal> ROOT::Internal::RRawFileWin::Clone() const
 {
    return std::make_unique<RRawFileWin>(fUrl, fOptions);
 }

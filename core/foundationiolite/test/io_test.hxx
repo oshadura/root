@@ -1,5 +1,5 @@
 #include "RConfigure.h"
-#include "ROOT/RRawFile.hxx"
+#include "ROOT/RRawFileLocal.hxx"
 #include "ROOT/RMakeUnique.hxx"
 
 #include <algorithm>
@@ -14,7 +14,7 @@
 
 #include "gtest/gtest.h"
 
-using RRawFile = ROOT::Internal::RRawFile;
+using RRawFileLocal = ROOT::Internal::RRawFileLocal;
 
 namespace {
 
